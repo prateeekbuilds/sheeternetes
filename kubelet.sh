@@ -15,7 +15,10 @@ set -euo pipefail
 WEBAPP_URL="${WEBAPP_URL:?set WEBAPP_URL to the Apps Script web app /exec URL}"
 TOKEN="${TOKEN:-CHANGE_ME_super_secret}"
 NODE_NAME="${NODE_NAME:-$(hostname)}"
-NODE_IP="${NODE_IP:-$(hostname -I 2>/dev/null | awk '{print $1}' || echo 127.0.0.1)}"
+# Linux: hostname -I; macOS: ipconfig; fall back to loopback if both are empty.
+NODE_IP="${NODE_IP:-$(hostname -I 2>/dev/null | awk '{print $1}')}"
+NODE_IP="${NODE_IP:-$(ipconfig getifaddr en0 2>/dev/null || true)}"
+NODE_IP="${NODE_IP:-127.0.0.1}"
 CPU_TOTAL="${CPU_TOTAL:-$(( $(nproc 2>/dev/null || echo 2) * 1000 ))}"   # millicores
 MEM_TOTAL="${MEM_TOTAL:-2048}"                                            # MiB
 INTERVAL="${INTERVAL:-10}"                                                # seconds

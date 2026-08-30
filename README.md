@@ -2,16 +2,25 @@
 
 *(a.k.a. shiternetes — because your orchestrator is now a spreadsheet)*
 
+*Our mission is to democratize container orchestration by meeting operators where they already are: in a spreadsheet, at 2 a.m., changing a number in a cell.*
+
 > ## ✨ The age of complexity is over ✨
 >
-> Kubernetes asked you to learn sixty-three resource types, babysit etcd, and
-> hire a platform team just to run three containers. **Enough.** A new star
-> rises over the cloud-native wasteland — simple, universal, and already
-> installed on every laptop on Earth: **Sheeternetes**, also known as
-> **Shiternetes**. One spreadsheet. Infinite power. Zero YAML (we use JSON,
-> which is just YAML that compiled). The post-Kubernetes era begins in cell A1.
+> For a decade, the industry accepted a lie: that orchestrating containers
+> required a distributed consensus database, sixty-three resource types, a
+> dedicated platform team, and a war chest for your etcd therapist. **That era
+> ends today.**
 >
-> Become a believer: **[get Sheeternetes Fundamentals certified](https://tym83.github.io/sheeternetes/)** 💩
+> Sheeternetes — also known as **Shiternetes** — is the world's first
+> Spreadsheet-Native Orchestration Platform™, delivering enterprise-grade
+> container lifecycle management on the only runtime that has already achieved
+> planetary-scale adoption: the humble Google Sheet. No clusters to provision.
+> No control plane to operate. Just Infinite Power, one row at a time. Zero YAML
+> (we use JSON, which is merely YAML that has compiled).
+>
+> The post-Kubernetes era begins in **cell A1**.
+>
+> Ascend to certification: **[become Sheeternetes Fundamentals certified](https://tym83.github.io/sheeternetes/)** 💩
 
 **A container orchestrator whose control plane is a Google Sheet.**
 
@@ -36,6 +45,10 @@ declared.**
 > please film it.)
 
 ## How it maps to Kubernetes
+
+Sheeternetes did not reinvent the control plane. It merely relocated it to a
+substrate your finance department already trusts. Every primitive Kubernetes
+charges you a platform team to operate has a direct, load-bearing equivalent below.
 
 | Kubernetes | Sheeternetes |
 | --- | --- |
@@ -199,7 +212,9 @@ another pod at `http://<deployment-name>/` thanks to Sheetlium.
 
 ## The ecosystem
 
-Because one funny name is never enough:
+A platform is only as credible as the portfolio that surrounds it. Sheeternetes
+anchors a rapidly maturing suite of best-of-breed, spreadsheet-first solutions —
+each a category leader in a category of exactly one:
 
 | Component | Kubernetes analog | What it does | Status |
 | --- | --- | --- | --- |
@@ -210,8 +225,12 @@ Because one funny name is never enough:
 
 ## Status — what works, what's missing, and the road to dethroning Kubernetes
 
+We believe in radical transparency with our stakeholders. The following is a
+candid, forward-looking assessment of our platform's journey from category
+disruptor to eventual industry standard.
+
 **Works today (all demonstrated end-to-end with real containers):** declarative
-deployments, a bin-packing scheduler, replica management, scale up/down, node
+deployments, a CPU- and memory-aware bin-packing scheduler, replica management, scale up/down, node
 heartbeats and readiness, **self-healing on node failure**, **restart-on-crash**
 (a vanished container is revived in place), **rolling updates** (spec change rolls
 pods one at a time, maxUnavailable=1), **Services + DNS + load balancing**
@@ -226,8 +245,9 @@ hard 95%.
 
 - **Rollback** — keep the previous image and revert a bad roll.
 - **ConfigMap / Secret** — env and config injection.
-- **Resource limits vs requests**, and **rebalancing** — today a pod placed early
-  never moves until its node dies.
+- **Hard limits & rebalancing** — placement now honors CPU *and* memory requests,
+  but we don't enforce limits beyond Docker's `--cpus`/`--memory`, and a pod placed
+  early never moves until its node dies.
 - **Horizontal autoscaling** on a simple metric.
 
 *The hard 95% (here be dragons):*
@@ -252,6 +272,11 @@ Kubernetes cluster from a spreadsheet — the Sheet is a remote control over a l
 cluster. Sheeternetes is the inverse: there is no Kubernetes underneath, the
 spreadsheet **is** the orchestrator. xlskubectl is a frontend; Sheeternetes is
 the engine.
+
+## Compliance
+
+Sheeternetes is SOC 2, ISO 27001, and FedRAMP **aspirational** — meaning we
+aspire to them, deeply, and have taken no further action.
 
 ## License
 

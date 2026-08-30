@@ -58,7 +58,7 @@ function event(kind, object, message) {
   if (n > 220) sh.deleteRows(2, n - 200);
 }
 
-function shortId() { return Utilities.getUuid().replace(/-/g, '').substring(0, 5); }
+function shortId() { return Utilities.getUuid().replace(/-/g, '').substring(0, 10); }
 
 // ---------- the control loop ----------
 function reconcile() {
@@ -72,7 +72,8 @@ function reconcile() {
 
     // 1) node readiness from heartbeat
     nodes.forEach(n => {
-      const hb = n.last_heartbeat ? Date.parse(n.last_heartbeat) : 0;
+      // String() guard: a real Sheet may coerce the ISO cell to a Date value
+      const hb = n.last_heartbeat ? Date.parse(String(n.last_heartbeat)) : 0;
       const ready = hb && (now - hb) < HEARTBEAT_TIMEOUT_MS;
       const wasReady = n.status === 'Ready';
       n.status = ready ? 'Ready' : 'NotReady';
@@ -145,27 +146,31 @@ function reconcile() {
       }
     });
 
-    // 6) scheduler: place Pending pods on the Ready node with most free CPU
-    const freeCpu = {};
-    readyNodes.forEach(n => { freeCpu[n.name] = (Number(n.cpu_total) || 0); });
+    // 6) scheduler: place each Pending pod on the Ready node with the most free
+    //    CPU that ALSO has enough free memory (bin-pack on both dimensions).
+    const freeCpu = {}, freeMem = {};
+    readyNodes.forEach(n => { freeCpu[n.name] = Number(n.cpu_total) || 0; freeMem[n.name] = Number(n.mem_total) || 0; });
     // subtract already-placed pods
     pods.forEach(p => {
       if (p.node && freeCpu[p.node] !== undefined && p.phase !== 'Terminating') {
         freeCpu[p.node] -= (Number(p.cpu_req) || 0);
+        freeMem[p.node] -= (Number(p.mem_req) || 0);
       }
     });
     pods.filter(p => p.phase === 'Pending').forEach(p => {
       let best = null, bestFree = -1;
       readyNodes.forEach(n => {
-        const f = freeCpu[n.name] - (Number(p.cpu_req) || 0);
-        if (f >= 0 && freeCpu[n.name] > bestFree) { best = n; bestFree = freeCpu[n.name]; }
+        const fitsCpu = freeCpu[n.name] - (Number(p.cpu_req) || 0) >= 0;
+        const fitsMem = freeMem[n.name] - (Number(p.mem_req) || 0) >= 0;
+        if (fitsCpu && fitsMem && freeCpu[n.name] > bestFree) { best = n; bestFree = freeCpu[n.name]; }
       });
       if (best) {
         p.node = best.name; p.node_ip = best.ip; p.phase = 'Scheduled';
         freeCpu[best.name] -= (Number(p.cpu_req) || 0);
+        freeMem[best.name] -= (Number(p.mem_req) || 0);
         event('Pod', p.name, 'scheduled on ' + best.name);
       } else {
-        p.message = 'Unschedulable: no node with enough CPU';
+        p.message = 'Unschedulable: no node with enough CPU and memory';
       }
     });
 
@@ -346,12 +351,13 @@ function setup() {
 // ---------- demo helpers (for a browser/video proof without real Docker hosts) ----------
 // Registers 3 fake nodes, schedules the current Deployments, and drives pods to Running.
 // This runs the REAL reconcile()/scheduler; only the kubelet is faked.
-function simulate() {
+function simulate(nodeNames) {
+  const names = nodeNames || ['node-a', 'node-b', 'node-c'];
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
     let nodes = readTab('Nodes');
-    ['node-a', 'node-b', 'node-c'].forEach((name, i) => {
+    names.forEach((name, i) => {
       let n = nodes.find(x => x.name === name);
       if (!n) { n = { name: name }; nodes.push(n); }
       n.ip = '10.0.0.' + (i + 1);
@@ -378,7 +384,7 @@ function simulate() {
     });
     writeTab('Pods', pods);
   } finally { lock2.releaseLock(); }
-  event('System', 'simulate', 'faked 3 nodes and drove pods to Running');
+  event('System', 'simulate', 'faked ' + names.length + ' node(s) and drove pods to Running');
 }
 
 // Ages node-c past the heartbeat timeout so the next reconcile evicts and reschedules its pods.
@@ -392,7 +398,8 @@ function simulateNodeFailure() {
     writeTab('Nodes', nodes);
   } finally { lock.releaseLock(); }
   reconcile();
-  // re-run the fake kubelet on survivors so rescheduled pods show Running again
-  simulate();
+  // re-run the fake kubelet on SURVIVORS only (don't resurrect node-c) so the
+  // rescheduled pods show Running again while node-c stays NotReady.
+  simulate(['node-a', 'node-b']);
   event('System', 'simulateNodeFailure', 'node-c failed; pods rescheduled');
 }

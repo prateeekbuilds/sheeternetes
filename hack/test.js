@@ -119,5 +119,13 @@ const liveNginx = pods().filter(p => p.deployment==='nginx' && p.phase!=='Termin
 check('all live nginx pods on the new image', liveNginx.length>0 && liveNginx.every(p => p.image==='nginx:1.27-alpine'), liveNginx.map(p=>p.image));
 check('still 6 live nginx replicas after roll', liveNginx.filter(p=>p.node).length===6, liveNginx.length);
 
+console.log('\n== G: memory is a scheduling constraint ==');
+// nodes have mem_total 2048; a pod asking 5000Mi cannot fit anywhere even though CPU is tiny
+apply([{name:'bigmem', image:'nginx:alpine', replicas:1, cpu_req:50, mem_req:5000, command:''}]);
+api.reconcile();
+var bm = pods().find(p => p.deployment==='bigmem');
+check('memory-heavy pod is left Unschedulable (not OOM-scheduled)', bm && !bm.node, bm && bm.node);
+check('unschedulable message mentions memory', bm && /memory/i.test(bm.message||''), bm && bm.message);
+
 console.log(`\n==== ${pass} passed, ${fail} failed ====`);
 process.exit(fail?1:0);
