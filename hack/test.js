@@ -90,5 +90,34 @@ check('node-c NotReady', nodes().find(n=>n.name==='node-c').status==='NotReady',
 check('no live pods on node-c', pods().filter(p=>p.node==='node-c'&&p.phase!=='Terminating').length===0, dist());
 check('nginx still 6 live pods', pods().filter(p=>p.deployment==='nginx'&&p.phase!=='Terminating'&&p.node).length===6, dist());
 
+// simulate the kubelet flipping this node's Scheduled pods to Running
+function driveRunning() {
+  const byNode = {};
+  pods().forEach(p => { if (p.phase==='Scheduled'||p.phase==='Running') {
+    (byNode[p.node]=byNode[p.node]||[]).push({name:p.name,phase:'Running',container_id:'c-'+p.name}); } });
+  Object.keys(byNode).forEach(n => api.doPost({ postData: { contents: JSON.stringify({
+    token:TOKEN, action:'heartbeat', node:n, ip:'10.0.0.1', cpu_total:2000, mem_total:2048, pods:byNode[n] })}}));
+}
+
+console.log('\n== E: restart-on-crash ==');
+driveRunning();  // everything Running
+const target = pods().find(p => p.deployment==='nginx' && p.node && p.phase==='Running');
+const tnode = target.node;
+// heartbeat tnode WITHOUT the target (its container crashed/exited)
+const others = pods().filter(p => p.node===tnode && p.phase==='Running' && p.name!==target.name)
+  .map(p => ({name:p.name, phase:'Running', container_id:'c-'+p.name}));
+api.doPost({ postData: { contents: JSON.stringify({ token:TOKEN, action:'heartbeat',
+  node:tnode, ip:'10.0.0.1', cpu_total:2000, mem_total:2048, pods:others })}});
+const restarted = pods().find(p => p.name===target.name);
+check('crashed pod goes back to Scheduled (restart)', restarted && restarted.phase==='Scheduled', restarted && restarted.phase);
+check('restarted pod stays on same node', restarted && restarted.node===tnode, restarted && restarted.node);
+
+console.log('\n== F: rolling update on image change ==');
+apply([{name:'nginx', image:'nginx:1.27-alpine', replicas:6, cpu_req:100, mem_req:64, command:''}]);
+for (let i=0;i<25;i++) { api.reconcile(); driveRunning(); }
+const liveNginx = pods().filter(p => p.deployment==='nginx' && p.phase!=='Terminating' && p.phase!=='Deleted');
+check('all live nginx pods on the new image', liveNginx.length>0 && liveNginx.every(p => p.image==='nginx:1.27-alpine'), liveNginx.map(p=>p.image));
+check('still 6 live nginx replicas after roll', liveNginx.filter(p=>p.node).length===6, liveNginx.length);
+
 console.log(`\n==== ${pass} passed, ${fail} failed ====`);
 process.exit(fail?1:0);

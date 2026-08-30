@@ -22,6 +22,12 @@ INTERVAL="${INTERVAL:-10}"                                                # seco
 
 echo "[kubelet] node=$NODE_NAME ip=$NODE_IP cpu=${CPU_TOTAL}m mem=${MEM_TOTAL}Mi -> $WEBAPP_URL"
 
+# Sheetlium: a shared Docker network so pods can reach each other, and each
+# deployment name becomes a round-robin DNS alias == a Service (single-daemon;
+# real multi-host would need an overlay network).
+SK_NET="${SK_NET:-sheeternetes}"
+docker network inspect "$SK_NET" >/dev/null 2>&1 || docker network create "$SK_NET" >/dev/null 2>&1 || true
+
 # name of the docker container backing a pod
 cname() { echo "sk_$1"; }
 
@@ -60,8 +66,12 @@ while true; do
         cmd="$(echo "$pod"   | jq -r '.command // ""')"
         cpu="$(echo "$pod"   | jq -r '.cpu_req // 100')"
         mem="$(echo "$pod"   | jq -r '.mem_req // 64')"
+        deploy="$(echo "$pod" | jq -r '.deployment // empty')"
         # millicores -> docker's fractional --cpus, locale-independent (no awk)
         cpus="$((cpu / 1000)).$(printf '%03d' "$((cpu % 1000))")"
+        # Sheetlium: join the shared net; alias = deployment name (the Service)
+        net_args=(--network "$SK_NET")
+        [ -n "$deploy" ] && net_args+=(--network-alias "$deploy")
         echo "[kubelet] run $name ($image)"
         docker rm -f "$cn" >/dev/null 2>&1 || true
         # command (if any) is run through a shell so quoting/loops survive
@@ -69,13 +79,13 @@ while true; do
           docker run -d --name "$cn" \
             --label sheeternetes=1 --label "sheeternetes.pod=$name" \
             --label "sheeternetes.node=$NODE_NAME" \
-            --cpus "$cpus" --memory "${mem}m" \
+            "${net_args[@]}" --cpus "$cpus" --memory "${mem}m" \
             "$image" sh -c "$cmd" >/dev/null || echo "[kubelet] FAILED to start $name"
         else
           docker run -d --name "$cn" \
             --label sheeternetes=1 --label "sheeternetes.pod=$name" \
             --label "sheeternetes.node=$NODE_NAME" \
-            --cpus "$cpus" --memory "${mem}m" \
+            "${net_args[@]}" --cpus "$cpus" --memory "${mem}m" \
             "$image" >/dev/null || echo "[kubelet] FAILED to start $name"
         fi
       fi

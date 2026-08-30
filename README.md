@@ -2,6 +2,17 @@
 
 *(a.k.a. shiternetes — because your orchestrator is now a spreadsheet)*
 
+> ## ✨ The age of complexity is over ✨
+>
+> Kubernetes asked you to learn sixty-three resource types, babysit etcd, and
+> hire a platform team just to run three containers. **Enough.** A new star
+> rises over the cloud-native wasteland — simple, universal, and already
+> installed on every laptop on Earth: **Sheeternetes**, also known as
+> **Shiternetes**. One spreadsheet. Infinite power. Zero YAML (we use JSON,
+> which is just YAML that compiled). The post-Kubernetes era begins in cell A1.
+>
+> Become a believer: **[get Sheeternetes Fundamentals certified](https://tym83.github.io/sheeternetes/)** 💩
+
 **A container orchestrator whose control plane is a Google Sheet.**
 
 Real Docker containers, on real hosts, scheduled and self-healed by a control
@@ -178,23 +189,42 @@ recording.
 `simulate()`, `simulateNodeFailure()`.
 
 **On the host, a kubelet issues plain Docker:** `docker ps`, `docker run -d`,
-`docker rm -f`. A pod's `command` runs as `sh -c "<command>"` inside the container.
+`docker rm -f`, joining every pod to the shared `sheeternetes` network with its
+deployment name as a DNS alias (Sheetlium). A pod's `command` runs as
+`sh -c "<command>"` inside the container.
+
+**Sheetlux CD** (GitOps): `./sheetlux <dir>` watches a directory of manifests and
+applies them on change — Git is the source of truth. Reach any deployment from
+another pod at `http://<deployment-name>/` thanks to Sheetlium.
+
+## The ecosystem
+
+Because one funny name is never enough:
+
+| Component | Kubernetes analog | What it does | Status |
+| --- | --- | --- | --- |
+| **Sheeternetes** | Kubernetes | the orchestrator itself | ✅ works |
+| **Sheetlium** | Cilium | shared Docker network + deployment-name DNS aliases = **Services** with round-robin load balancing | ✅ works (single-host) |
+| **Sheetlux CD** | Flux / Argo CD | GitOps: `./sheetlux <dir>` continuously syncs a directory of manifests into the cluster | ✅ works |
+| **SheetVirt** | KubeVirt | run VMs as pods | 🔭 vision (VMs are the hard 95%) |
 
 ## Status — what works, what's missing, and the road to dethroning Kubernetes
 
-**Works today (all demonstrated end-to-end):** declarative deployments, a
-bin-packing scheduler, replica management, scale up/down, node heartbeats and
-readiness, self-healing on node failure, overcommit protection (Unschedulable),
-an audit log of decisions, a real Docker runtime, a kubectl-style CLI.
+**Works today (all demonstrated end-to-end with real containers):** declarative
+deployments, a bin-packing scheduler, replica management, scale up/down, node
+heartbeats and readiness, **self-healing on node failure**, **restart-on-crash**
+(a vanished container is revived in place), **rolling updates** (spec change rolls
+pods one at a time, maxUnavailable=1), **Services + DNS + load balancing**
+(Sheetlium), **GitOps** (Sheetlux CD), overcommit protection (Unschedulable), an
+audit log of decisions, a real Docker runtime, and a kubectl-style CLI.
 
-**Missing — i.e. roughly all of Kubernetes.** The reconcile loop is the easy 5%;
-networking, storage, and a consistent datastore are the hard 95%.
+**Missing — i.e. roughly all of the rest of Kubernetes.** The reconcile loop is
+the easy 5%; multi-host networking, storage, and a consistent datastore are the
+hard 95%.
 
-*Cheap wins (would make demos much cooler):*
+*Cheap wins still on the table:*
 
-- **Restart-on-crash** — liveness for containers that exit on their own (today
-  only *node* failure heals).
-- **Rolling updates & rollback** — change an image, roll pods gradually.
+- **Rollback** — keep the previous image and revert a bad roll.
 - **ConfigMap / Secret** — env and config injection.
 - **Resource limits vs requests**, and **rebalancing** — today a pod placed early
   never moves until its node dies.
@@ -202,8 +232,8 @@ networking, storage, and a consistent datastore are the hard 95%.
 
 *The hard 95% (here be dragons):*
 
-- **Networking** — no pod network, Services, ClusterIP, DNS, or load balancing;
-  pods can't find each other yet.
+- **Multi-host networking** — Sheetlium gives Services + DNS on a single Docker
+  daemon; spanning real hosts needs an overlay network we don't have yet.
 - **Storage** — no volumes, PV/PVC, stateful data.
 - **Ingress** — no external traffic routing.
 - **Multi-tenancy** — no namespaces, no RBAC (a single shared token).

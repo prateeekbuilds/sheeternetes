@@ -127,6 +127,24 @@ function reconcile() {
       }
     });
 
+    // 5b) rolling update: if a pod's spec drifts from its deployment, retire ONE
+    // stale pod per deployment per pass (the replica loop recreates a fresh one
+    // with the new spec on the next reconcile) -> gradual, maxUnavailable=1.
+    deployments.forEach(dep => {
+      const live = pods.filter(p => p.deployment === dep.name && p.phase !== 'Terminating');
+      const drift = (p) => String(p.image) !== String(dep.image) ||
+                           String(p.command || '') !== String(dep.command || '') ||
+                           String(p.cpu_req) !== String(dep.cpu_req) ||
+                           String(p.mem_req) !== String(dep.mem_req);
+      const stale = live.find(drift);
+      const rolling = live.some(p => p.phase === 'Pending' || p.phase === 'Scheduled');
+      // only roll when at desired count and nothing is mid-roll, to avoid churn
+      if (stale && !rolling && live.length >= (Number(dep.replicas) || 0)) {
+        stale.phase = 'Terminating';
+        event('Pod', stale.name, 'rolling update -> Terminating (spec changed)');
+      }
+    });
+
     // 6) scheduler: place Pending pods on the Ready node with most free CPU
     const freeCpu = {};
     readyNodes.forEach(n => { freeCpu[n.name] = (Number(n.cpu_total) || 0); });
@@ -228,6 +246,10 @@ function doPost(e) {
           // agent no longer runs it -> it's gone
           p.phase = 'Deleted';
           event('Pod', p.name, 'deleted from ' + body.node);
+        } else if (p.phase === 'Running') {
+          // container vanished on a still-Ready node -> it crashed; restart in place
+          p.phase = 'Scheduled'; p.container_id = '';
+          event('Pod', p.name, 'container exited on ' + body.node + ' -> restarting');
         }
       });
       writeTab('Pods', pods);
@@ -242,7 +264,7 @@ function doPost(e) {
   state.pods.forEach(p => {
     if (p.node !== body.node) return;
     if (p.phase === 'Scheduled' || p.phase === 'Running') {
-      desired.push({ name: p.name, image: p.image, command: p.command,
+      desired.push({ name: p.name, deployment: p.deployment, image: p.image, command: p.command,
                      cpu_req: p.cpu_req, mem_req: p.mem_req, desired: 'Running' });
     } else if (p.phase === 'Terminating') {
       desired.push({ name: p.name, desired: 'Terminating' });

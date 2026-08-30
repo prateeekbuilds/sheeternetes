@@ -1,0 +1,6 @@
+{
+  "_note": "Sheetlux CD source of truth. Edit, commit, push -> the cluster follows.",
+  "deployments": [
+    { "name": "web", "image": "nginx:alpine", "replicas": 2, "cpu_req": 100, "mem_req": 64, "command": "" }
+  ]
+}
