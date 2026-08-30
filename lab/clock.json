@@ -2,6 +2,6 @@
   "_note": "A busybox pod that prints the date every 2s. Tail it with: docker logs -f sk_<pod>. Shows custom commands flowing Sheet -> kubelet -> docker.",
   "deployments": [
     { "name": "clock", "image": "busybox", "replicas": 2, "cpu_req": 50, "mem_req": 16,
-      "command": "sh -c 'while true; do date; sleep 2; done'" }
+      "command": "while true; do date; sleep 2; done" }
   ]
 }

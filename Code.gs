@@ -320,3 +320,57 @@ function setup() {
   ScriptApp.newTrigger('reconcile').timeBased().everyMinutes(1).create();
   event('System', 'setup', 'Sheeternetes initialized');
 }
+
+// ---------- demo helpers (for a browser/video proof without real Docker hosts) ----------
+// Registers 3 fake nodes, schedules the current Deployments, and drives pods to Running.
+// This runs the REAL reconcile()/scheduler; only the kubelet is faked.
+function simulate() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    let nodes = readTab('Nodes');
+    ['node-a', 'node-b', 'node-c'].forEach((name, i) => {
+      let n = nodes.find(x => x.name === name);
+      if (!n) { n = { name: name }; nodes.push(n); }
+      n.ip = '10.0.0.' + (i + 1);
+      n.cpu_total = 4000; n.mem_total = 8192;
+      n.status = 'Ready';
+      n.last_heartbeat = new Date().toISOString();
+    });
+    writeTab('Nodes', nodes);
+  } finally { lock.releaseLock(); }
+
+  reconcile();  // schedule Pending -> Scheduled
+
+  // fake the kubelet: Scheduled -> Running with a fake container id
+  const lock2 = LockService.getScriptLock();
+  lock2.waitLock(20000);
+  try {
+    let pods = readTab('Pods');
+    pods.forEach(p => {
+      if (p.phase === 'Scheduled') {
+        p.phase = 'Running';
+        p.container_id = 'fake' + Utilities.getUuid().replace(/-/g, '').substring(0, 8);
+        if (!p.started_at) p.started_at = new Date().toISOString();
+      }
+    });
+    writeTab('Pods', pods);
+  } finally { lock2.releaseLock(); }
+  event('System', 'simulate', 'faked 3 nodes and drove pods to Running');
+}
+
+// Ages node-c past the heartbeat timeout so the next reconcile evicts and reschedules its pods.
+function simulateNodeFailure() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    let nodes = readTab('Nodes');
+    const c = nodes.find(n => n.name === 'node-c');
+    if (c) { c.last_heartbeat = new Date(Date.now() - 5 * 60 * 1000).toISOString(); }
+    writeTab('Nodes', nodes);
+  } finally { lock.releaseLock(); }
+  reconcile();
+  // re-run the fake kubelet on survivors so rescheduled pods show Running again
+  simulate();
+  event('System', 'simulateNodeFailure', 'node-c failed; pods rescheduled');
+}

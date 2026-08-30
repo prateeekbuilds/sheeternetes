@@ -116,13 +116,112 @@ To see **self-healing**: with the tour running, stop one kubelet
 `NotReady`, and the control loop reschedules its pods onto the survivors — just
 like the real thing.
 
-## Limitations (a.k.a. "it's a spreadsheet")
+## Testing
 
-- No restart-on-crash for containers that exit on their own (pods are assumed
-  long-running); the model reschedules on *node* failure, not container exit.
-- Apps Script has execution-time and quota limits; this scales to a demo, not a
-  datacenter.
-- Auth is a single shared token. It is a toy. Treat the Web App URL as a secret.
+You don't need Google to test the orchestration path.
+
+**Control-plane unit test** — runs the real `Code.gs` scheduler/reconcile in Node
+with a mocked Sheet:
+
+```bash
+node hack/test.js     # asserts scheduling, scale, overcommit, node-failure eviction
+```
+
+**Full end-to-end with real containers, no Google** — `hack/local-apiserver.js`
+serves the exact `Code.gs` control plane backed by an in-memory store, so real
+kubelets run real Docker containers against it:
+
+```bash
+node hack/local-apiserver.js &
+printf 'WEBAPP_URL=http://localhost:8787/exec\nTOKEN=CHANGE_ME_super_secret\n' > .skctl.env
+./local-cluster.sh                 # 3 kubelets + real containers
+./skctl get pods                   # watch them go Running
+./skctl scale nginx 6              # watch bin-packing spread across nodes
+```
+
+Simulate a node failure and watch pods reschedule:
+
+```bash
+kill "$(lsof -t .run/node-c.log)"
+docker rm -f $(docker ps -q --filter label=sheeternetes.node=node-c)
+# ~90s later its pods reappear on the surviving nodes
+```
+
+The kubelets are byte-for-byte identical against the local shim and against a
+real Sheet — only `WEBAPP_URL` changes.
+
+**Visual proof in the Sheet** — with `Code.gs` deployed, run `simulate()` from the
+Apps Script editor: it registers three fake nodes, runs the real scheduler, and
+drives pods to Running so the Sheet fills live. `simulateNodeFailure()` ages a
+node past its heartbeat so you can watch the reschedule. Ideal for a screen
+recording.
+
+## Command reference
+
+**`skctl`** (the CLI)
+
+| Command | Does |
+| --- | --- |
+| `skctl get pods\|nodes\|deployments\|events` | read state |
+| `skctl apply <file.json>` | create/update deployments (our `kubectl apply -f`) |
+| `skctl scale <deployment> <n>` | change replicas |
+| `skctl delete <deployment>` | remove a deployment |
+| `skctl tour` | guided demo |
+
+**apiserver** (Apps Script Web App, HTTP)
+
+- `GET  ?token=&kind=pods|nodes|deployments|events` — read state
+- `POST {action:"heartbeat", node, ip, cpu_total, pods:[…]}` — kubelet sync
+- `POST {action:"apply|scale|delete", …}` — control ops
+
+**Apps Script functions** (run from the editor): `setup()`, `reconcile()`,
+`simulate()`, `simulateNodeFailure()`.
+
+**On the host, a kubelet issues plain Docker:** `docker ps`, `docker run -d`,
+`docker rm -f`. A pod's `command` runs as `sh -c "<command>"` inside the container.
+
+## Status — what works, what's missing, and the road to dethroning Kubernetes
+
+**Works today (all demonstrated end-to-end):** declarative deployments, a
+bin-packing scheduler, replica management, scale up/down, node heartbeats and
+readiness, self-healing on node failure, overcommit protection (Unschedulable),
+an audit log of decisions, a real Docker runtime, a kubectl-style CLI.
+
+**Missing — i.e. roughly all of Kubernetes.** The reconcile loop is the easy 5%;
+networking, storage, and a consistent datastore are the hard 95%.
+
+*Cheap wins (would make demos much cooler):*
+
+- **Restart-on-crash** — liveness for containers that exit on their own (today
+  only *node* failure heals).
+- **Rolling updates & rollback** — change an image, roll pods gradually.
+- **ConfigMap / Secret** — env and config injection.
+- **Resource limits vs requests**, and **rebalancing** — today a pod placed early
+  never moves until its node dies.
+- **Horizontal autoscaling** on a simple metric.
+
+*The hard 95% (here be dragons):*
+
+- **Networking** — no pod network, Services, ClusterIP, DNS, or load balancing;
+  pods can't find each other yet.
+- **Storage** — no volumes, PV/PVC, stateful data.
+- **Ingress** — no external traffic routing.
+- **Multi-tenancy** — no namespaces, no RBAC (a single shared token).
+- **Consistency** — Google Sheets is not a quorum store: API quotas, no
+  watch/streaming (we poll), no leader election, races under concurrency.
+- **Extensibility** — no CRDs, operators, or admission control.
+
+Honest verdict: Sheeternetes faithfully reproduces the *shape* of Kubernetes —
+declarative desired state converged by a control loop — and almost none of its
+*substance*. That's the joke, and also the lesson.
+
+## Prior art
+
+[`xlskubectl`](https://github.com/learnk8s/xlskubectl) (learnk8s) drives a **real**
+Kubernetes cluster from a spreadsheet — the Sheet is a remote control over a live
+cluster. Sheeternetes is the inverse: there is no Kubernetes underneath, the
+spreadsheet **is** the orchestrator. xlskubectl is a frontend; Sheeternetes is
+the engine.
 
 ## License
 

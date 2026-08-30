@@ -47,8 +47,9 @@ while true; do
 
   desired="$(echo "$resp" | jq -c '.pods // []')"
 
-  # 3) converge: start Running that are missing, remove Terminating
-  echo "$desired" | jq -c '.[]' | while read -r pod; do
+  # 3) converge: start Running that are missing, remove Terminating.
+  # Read the pod stream on FD 3 so docker commands in the body can't drain it.
+  while read -r pod <&3; do
     name="$(echo "$pod"  | jq -r '.name')"
     want="$(echo "$pod"  | jq -r '.desired')"
     cn="$(cname "$name")"
@@ -59,15 +60,24 @@ while true; do
         cmd="$(echo "$pod"   | jq -r '.command // ""')"
         cpu="$(echo "$pod"   | jq -r '.cpu_req // 100')"
         mem="$(echo "$pod"   | jq -r '.mem_req // 64')"
+        # millicores -> docker's fractional --cpus, locale-independent (no awk)
+        cpus="$((cpu / 1000)).$(printf '%03d' "$((cpu % 1000))")"
         echo "[kubelet] run $name ($image)"
         docker rm -f "$cn" >/dev/null 2>&1 || true
-        # shellcheck disable=SC2086
-        docker run -d --name "$cn" \
-          --label sheeternetes=1 --label "sheeternetes.pod=$name" \
-          --label "sheeternetes.node=$NODE_NAME" \
-          --cpus "$(awk "BEGIN{print $cpu/1000}")" \
-          --memory "${mem}m" \
-          "$image" $cmd >/dev/null || echo "[kubelet] FAILED to start $name"
+        # command (if any) is run through a shell so quoting/loops survive
+        if [ -n "$cmd" ] && [ "$cmd" != "null" ]; then
+          docker run -d --name "$cn" \
+            --label sheeternetes=1 --label "sheeternetes.pod=$name" \
+            --label "sheeternetes.node=$NODE_NAME" \
+            --cpus "$cpus" --memory "${mem}m" \
+            "$image" sh -c "$cmd" >/dev/null || echo "[kubelet] FAILED to start $name"
+        else
+          docker run -d --name "$cn" \
+            --label sheeternetes=1 --label "sheeternetes.pod=$name" \
+            --label "sheeternetes.node=$NODE_NAME" \
+            --cpus "$cpus" --memory "${mem}m" \
+            "$image" >/dev/null || echo "[kubelet] FAILED to start $name"
+        fi
       fi
     elif [ "$want" = "Terminating" ]; then
       if docker ps -aq -f "name=^${cn}$" | grep -q .; then
@@ -75,18 +85,17 @@ while true; do
         docker rm -f "$cn" >/dev/null 2>&1 || true
       fi
     fi
-  done
+  done 3< <(echo "$desired" | jq -c '.[]')
 
   # 4) garbage-collect pods no longer desired at all (only ours)
   desired_names="$(echo "$desired" | jq -r '.[].name')"
-  docker ps --filter "label=sheeternetes.node=$NODE_NAME" \
-    --format '{{.Label "sheeternetes.pod"}}' | while read -r have; do
+  while read -r have <&3; do
     [ -z "$have" ] && continue
     if ! echo "$desired_names" | grep -qx "$have"; then
       echo "[kubelet] gc $have"
       docker rm -f "$(cname "$have")" >/dev/null 2>&1 || true
     fi
-  done
+  done 3< <(docker ps --filter "label=sheeternetes.node=$NODE_NAME" --format '{{.Label "sheeternetes.pod"}}')
 
   sleep "$INTERVAL"
 done
