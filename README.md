@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/social-card.png" alt="Sheeternetes — a container orchestrator whose control plane is a Google Sheet" width="680">
+</p>
+
 # Sheeternetes
 
 *(a.k.a. shiternetes — because your orchestrator is now a spreadsheet)*
