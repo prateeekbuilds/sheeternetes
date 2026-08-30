@@ -1,0 +1,6 @@
+{
+  "_note": "Basic demo: 3 replicas of a whoami web server. Watch them spread across nodes with `skctl get pods`.",
+  "deployments": [
+    { "name": "whoami", "image": "traefik/whoami", "replicas": 3, "cpu_req": 100, "mem_req": 32, "command": "" }
+  ]
+}

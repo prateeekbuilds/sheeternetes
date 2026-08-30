@@ -1,0 +1,6 @@
+{
+  "_note": "Deliberately asks for more CPU than the cluster has. Some pods stay Pending/Unschedulable — check `skctl get pods` and the Events tab. This is the scheduler refusing to oversubscribe.",
+  "deployments": [
+    { "name": "hog", "image": "nginx:alpine", "replicas": 20, "cpu_req": 1000, "mem_req": 64, "command": "" }
+  ]
+}

@@ -1,0 +1,12 @@
+Sheeternetes
+Copyright 2026 Timur Tukaev
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+A container orchestrator whose control plane is a Google Sheet.
+Built for fun, to show that Kubernetes is, at heart, a declarative
+desired-state reconciliation loop — the same shape as a spreadsheet.
