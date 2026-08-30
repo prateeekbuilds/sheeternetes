@@ -75,17 +75,35 @@ that node should be running. The node converges. That's the whole system.
 - **Pods** — written by the control loop: `phase` (Pending → Scheduled → Running → Terminating → Deleted), which node, container id
 - **Events** — an audit log of scheduling / scaling / eviction decisions
 
+## Prerequisites
+
+You do not need Kubernetes, etcd, a cluster, or a platform team. You need:
+
+- **A Google account** — for the Sheet and Apps Script. This *is* the entire
+  control plane; there is no server to run or database to host.
+- **One or more Docker hosts** to run pods on. Each needs `bash`, `curl`, `jq`,
+  and `docker`. Linux or macOS both work; a single laptop is enough
+  (`local-cluster.sh` fakes 3 nodes on one Docker daemon).
+- **Node.js** — *optional*, only to run the test harness / `hack/local-apiserver.js`
+  and try the whole thing without Google at all.
+
+There is **no schema to import and no template to copy**: running `setup()` once
+turns a blank spreadsheet into the full Sheeternetes structure (the four tabs,
+their headers, a sample workload, and the reconcile timer).
+
 ## Quickstart
 
 ### 1. Control plane (Apps Script)
 
-1. Create a Google Sheet.
+1. Create a **blank** Google Sheet.
 2. **Extensions → Apps Script**, paste [`Code.gs`](Code.gs).
 3. Set `TOKEN` at the top to something secret.
-4. Run `setup()` once (grant permissions). It creates the tabs, two sample
-   deployments, and installs the 1-minute reconcile trigger.
+4. Run `setup()` once (grant permissions when prompted — it's your own script,
+   so on the "Google hasn't verified this app" screen choose *Advanced → Go to …*).
+   This turns the blank sheet into the full structure: the four tabs with headers,
+   two sample deployments, and the 1-minute reconcile trigger.
 5. **Deploy → New deployment → Web app**, *Execute as: Me*, *Who has access:
-   Anyone*. Copy the `/exec` URL.
+   Anyone*. Copy the `/exec` URL (it ends in `/exec`, not `/dev`).
 
 ### 2. CLI
 
