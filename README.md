@@ -1,5 +1,7 @@
 # Sheeternetes
 
+*(a.k.a. shiternetes — because your orchestrator is now a spreadsheet)*
+
 **A container orchestrator whose control plane is a Google Sheet.**
 
 Real Docker containers, on real hosts, scheduled and self-healed by a control
