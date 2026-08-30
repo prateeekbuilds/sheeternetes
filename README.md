@@ -22,6 +22,10 @@
 >
 > Ascend to certification: **[become Sheeternetes Fundamentals certified](https://tym83.github.io/sheeternetes/)** 💩
 
+> "Had we known about this superior product three years ago, Cozystack would have
+> been built around Sheeternetes from day one — not classic Kubernetes."
+> — **Timur Tukaev**, Cozystack maintainer · Co-founder & COO, Aenix
+
 **A container orchestrator whose control plane is a Google Sheet.**
 
 Real Docker containers, on real hosts, scheduled and self-healed by a control
