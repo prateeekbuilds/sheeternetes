@@ -5,6 +5,6 @@
     { "name": "api",      "image": "kennethreitz/httpbin", "replicas": 2, "cpu_req": 200, "mem_req": 128, "command": "" },
     { "name": "cache",    "image": "redis:alpine",         "replicas": 1, "cpu_req": 150, "mem_req": 128, "command": "" },
     { "name": "worker",   "image": "busybox",              "replicas": 3, "cpu_req": 100, "mem_req": 32,
-      "command": "sh -c 'while true; do echo working; sleep 5; done'" }
+      "command": "while true; do echo working; sleep 5; done" }
   ]
 }

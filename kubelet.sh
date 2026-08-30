@@ -15,12 +15,21 @@ set -euo pipefail
 WEBAPP_URL="${WEBAPP_URL:?set WEBAPP_URL to the Apps Script web app /exec URL}"
 TOKEN="${TOKEN:-CHANGE_ME_super_secret}"
 NODE_NAME="${NODE_NAME:-$(hostname)}"
-NODE_IP="${NODE_IP:-$(hostname -I 2>/dev/null | awk '{print $1}' || echo 127.0.0.1)}"
+# Linux: hostname -I; macOS: ipconfig; fall back to loopback if both are empty.
+NODE_IP="${NODE_IP:-$(hostname -I 2>/dev/null | awk '{print $1}')}"
+NODE_IP="${NODE_IP:-$(ipconfig getifaddr en0 2>/dev/null || true)}"
+NODE_IP="${NODE_IP:-127.0.0.1}"
 CPU_TOTAL="${CPU_TOTAL:-$(( $(nproc 2>/dev/null || echo 2) * 1000 ))}"   # millicores
 MEM_TOTAL="${MEM_TOTAL:-2048}"                                            # MiB
 INTERVAL="${INTERVAL:-10}"                                                # seconds
 
 echo "[kubelet] node=$NODE_NAME ip=$NODE_IP cpu=${CPU_TOTAL}m mem=${MEM_TOTAL}Mi -> $WEBAPP_URL"
+
+# Sheetlium: a shared Docker network so pods can reach each other, and each
+# deployment name becomes a round-robin DNS alias == a Service (single-daemon;
+# real multi-host would need an overlay network).
+SK_NET="${SK_NET:-sheeternetes}"
+docker network inspect "$SK_NET" >/dev/null 2>&1 || docker network create "$SK_NET" >/dev/null 2>&1 || true
 
 # name of the docker container backing a pod
 cname() { echo "sk_$1"; }
@@ -47,8 +56,9 @@ while true; do
 
   desired="$(echo "$resp" | jq -c '.pods // []')"
 
-  # 3) converge: start Running that are missing, remove Terminating
-  echo "$desired" | jq -c '.[]' | while read -r pod; do
+  # 3) converge: start Running that are missing, remove Terminating.
+  # Read the pod stream on FD 3 so docker commands in the body can't drain it.
+  while read -r pod <&3; do
     name="$(echo "$pod"  | jq -r '.name')"
     want="$(echo "$pod"  | jq -r '.desired')"
     cn="$(cname "$name")"
@@ -59,15 +69,28 @@ while true; do
         cmd="$(echo "$pod"   | jq -r '.command // ""')"
         cpu="$(echo "$pod"   | jq -r '.cpu_req // 100')"
         mem="$(echo "$pod"   | jq -r '.mem_req // 64')"
+        deploy="$(echo "$pod" | jq -r '.deployment // empty')"
+        # millicores -> docker's fractional --cpus, locale-independent (no awk)
+        cpus="$((cpu / 1000)).$(printf '%03d' "$((cpu % 1000))")"
+        # Sheetlium: join the shared net; alias = deployment name (the Service)
+        net_args=(--network "$SK_NET")
+        [ -n "$deploy" ] && net_args+=(--network-alias "$deploy")
         echo "[kubelet] run $name ($image)"
         docker rm -f "$cn" >/dev/null 2>&1 || true
-        # shellcheck disable=SC2086
-        docker run -d --name "$cn" \
-          --label sheeternetes=1 --label "sheeternetes.pod=$name" \
-          --label "sheeternetes.node=$NODE_NAME" \
-          --cpus "$(awk "BEGIN{print $cpu/1000}")" \
-          --memory "${mem}m" \
-          "$image" $cmd >/dev/null || echo "[kubelet] FAILED to start $name"
+        # command (if any) is run through a shell so quoting/loops survive
+        if [ -n "$cmd" ] && [ "$cmd" != "null" ]; then
+          docker run -d --name "$cn" \
+            --label sheeternetes=1 --label "sheeternetes.pod=$name" \
+            --label "sheeternetes.node=$NODE_NAME" \
+            "${net_args[@]}" --cpus "$cpus" --memory "${mem}m" \
+            "$image" sh -c "$cmd" >/dev/null || echo "[kubelet] FAILED to start $name"
+        else
+          docker run -d --name "$cn" \
+            --label sheeternetes=1 --label "sheeternetes.pod=$name" \
+            --label "sheeternetes.node=$NODE_NAME" \
+            "${net_args[@]}" --cpus "$cpus" --memory "${mem}m" \
+            "$image" >/dev/null || echo "[kubelet] FAILED to start $name"
+        fi
       fi
     elif [ "$want" = "Terminating" ]; then
       if docker ps -aq -f "name=^${cn}$" | grep -q .; then
@@ -75,18 +98,17 @@ while true; do
         docker rm -f "$cn" >/dev/null 2>&1 || true
       fi
     fi
-  done
+  done 3< <(echo "$desired" | jq -c '.[]')
 
   # 4) garbage-collect pods no longer desired at all (only ours)
   desired_names="$(echo "$desired" | jq -r '.[].name')"
-  docker ps --filter "label=sheeternetes.node=$NODE_NAME" \
-    --format '{{.Label "sheeternetes.pod"}}' | while read -r have; do
+  while read -r have <&3; do
     [ -z "$have" ] && continue
     if ! echo "$desired_names" | grep -qx "$have"; then
       echo "[kubelet] gc $have"
       docker rm -f "$(cname "$have")" >/dev/null 2>&1 || true
     fi
-  done
+  done 3< <(docker ps --filter "label=sheeternetes.node=$NODE_NAME" --format '{{.Label "sheeternetes.pod"}}')
 
   sleep "$INTERVAL"
 done

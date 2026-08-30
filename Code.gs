@@ -58,7 +58,7 @@ function event(kind, object, message) {
   if (n > 220) sh.deleteRows(2, n - 200);
 }
 
-function shortId() { return Utilities.getUuid().replace(/-/g, '').substring(0, 5); }
+function shortId() { return Utilities.getUuid().replace(/-/g, '').substring(0, 10); }
 
 // ---------- the control loop ----------
 function reconcile() {
@@ -72,7 +72,8 @@ function reconcile() {
 
     // 1) node readiness from heartbeat
     nodes.forEach(n => {
-      const hb = n.last_heartbeat ? Date.parse(n.last_heartbeat) : 0;
+      // String() guard: a real Sheet may coerce the ISO cell to a Date value
+      const hb = n.last_heartbeat ? Date.parse(String(n.last_heartbeat)) : 0;
       const ready = hb && (now - hb) < HEARTBEAT_TIMEOUT_MS;
       const wasReady = n.status === 'Ready';
       n.status = ready ? 'Ready' : 'NotReady';
@@ -127,27 +128,49 @@ function reconcile() {
       }
     });
 
-    // 6) scheduler: place Pending pods on the Ready node with most free CPU
-    const freeCpu = {};
-    readyNodes.forEach(n => { freeCpu[n.name] = (Number(n.cpu_total) || 0); });
+    // 5b) rolling update: if a pod's spec drifts from its deployment, retire ONE
+    // stale pod per deployment per pass (the replica loop recreates a fresh one
+    // with the new spec on the next reconcile) -> gradual, maxUnavailable=1.
+    deployments.forEach(dep => {
+      const live = pods.filter(p => p.deployment === dep.name && p.phase !== 'Terminating');
+      const drift = (p) => String(p.image) !== String(dep.image) ||
+                           String(p.command || '') !== String(dep.command || '') ||
+                           String(p.cpu_req) !== String(dep.cpu_req) ||
+                           String(p.mem_req) !== String(dep.mem_req);
+      const stale = live.find(drift);
+      const rolling = live.some(p => p.phase === 'Pending' || p.phase === 'Scheduled');
+      // only roll when at desired count and nothing is mid-roll, to avoid churn
+      if (stale && !rolling && live.length >= (Number(dep.replicas) || 0)) {
+        stale.phase = 'Terminating';
+        event('Pod', stale.name, 'rolling update -> Terminating (spec changed)');
+      }
+    });
+
+    // 6) scheduler: place each Pending pod on the Ready node with the most free
+    //    CPU that ALSO has enough free memory (bin-pack on both dimensions).
+    const freeCpu = {}, freeMem = {};
+    readyNodes.forEach(n => { freeCpu[n.name] = Number(n.cpu_total) || 0; freeMem[n.name] = Number(n.mem_total) || 0; });
     // subtract already-placed pods
     pods.forEach(p => {
       if (p.node && freeCpu[p.node] !== undefined && p.phase !== 'Terminating') {
         freeCpu[p.node] -= (Number(p.cpu_req) || 0);
+        freeMem[p.node] -= (Number(p.mem_req) || 0);
       }
     });
     pods.filter(p => p.phase === 'Pending').forEach(p => {
       let best = null, bestFree = -1;
       readyNodes.forEach(n => {
-        const f = freeCpu[n.name] - (Number(p.cpu_req) || 0);
-        if (f >= 0 && freeCpu[n.name] > bestFree) { best = n; bestFree = freeCpu[n.name]; }
+        const fitsCpu = freeCpu[n.name] - (Number(p.cpu_req) || 0) >= 0;
+        const fitsMem = freeMem[n.name] - (Number(p.mem_req) || 0) >= 0;
+        if (fitsCpu && fitsMem && freeCpu[n.name] > bestFree) { best = n; bestFree = freeCpu[n.name]; }
       });
       if (best) {
         p.node = best.name; p.node_ip = best.ip; p.phase = 'Scheduled';
         freeCpu[best.name] -= (Number(p.cpu_req) || 0);
+        freeMem[best.name] -= (Number(p.mem_req) || 0);
         event('Pod', p.name, 'scheduled on ' + best.name);
       } else {
-        p.message = 'Unschedulable: no node with enough CPU';
+        p.message = 'Unschedulable: no node with enough CPU and memory';
       }
     });
 
@@ -228,6 +251,10 @@ function doPost(e) {
           // agent no longer runs it -> it's gone
           p.phase = 'Deleted';
           event('Pod', p.name, 'deleted from ' + body.node);
+        } else if (p.phase === 'Running') {
+          // container vanished on a still-Ready node -> it crashed; restart in place
+          p.phase = 'Scheduled'; p.container_id = '';
+          event('Pod', p.name, 'container exited on ' + body.node + ' -> restarting');
         }
       });
       writeTab('Pods', pods);
@@ -242,7 +269,7 @@ function doPost(e) {
   state.pods.forEach(p => {
     if (p.node !== body.node) return;
     if (p.phase === 'Scheduled' || p.phase === 'Running') {
-      desired.push({ name: p.name, image: p.image, command: p.command,
+      desired.push({ name: p.name, deployment: p.deployment, image: p.image, command: p.command,
                      cpu_req: p.cpu_req, mem_req: p.mem_req, desired: 'Running' });
     } else if (p.phase === 'Terminating') {
       desired.push({ name: p.name, desired: 'Terminating' });
@@ -319,4 +346,60 @@ function setup() {
   });
   ScriptApp.newTrigger('reconcile').timeBased().everyMinutes(1).create();
   event('System', 'setup', 'Sheeternetes initialized');
+}
+
+// ---------- demo helpers (for a browser/video proof without real Docker hosts) ----------
+// Registers 3 fake nodes, schedules the current Deployments, and drives pods to Running.
+// This runs the REAL reconcile()/scheduler; only the kubelet is faked.
+function simulate(nodeNames) {
+  const names = nodeNames || ['node-a', 'node-b', 'node-c'];
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    let nodes = readTab('Nodes');
+    names.forEach((name, i) => {
+      let n = nodes.find(x => x.name === name);
+      if (!n) { n = { name: name }; nodes.push(n); }
+      n.ip = '10.0.0.' + (i + 1);
+      n.cpu_total = 4000; n.mem_total = 8192;
+      n.status = 'Ready';
+      n.last_heartbeat = new Date().toISOString();
+    });
+    writeTab('Nodes', nodes);
+  } finally { lock.releaseLock(); }
+
+  reconcile();  // schedule Pending -> Scheduled
+
+  // fake the kubelet: Scheduled -> Running with a fake container id
+  const lock2 = LockService.getScriptLock();
+  lock2.waitLock(20000);
+  try {
+    let pods = readTab('Pods');
+    pods.forEach(p => {
+      if (p.phase === 'Scheduled') {
+        p.phase = 'Running';
+        p.container_id = 'fake' + Utilities.getUuid().replace(/-/g, '').substring(0, 8);
+        if (!p.started_at) p.started_at = new Date().toISOString();
+      }
+    });
+    writeTab('Pods', pods);
+  } finally { lock2.releaseLock(); }
+  event('System', 'simulate', 'faked ' + names.length + ' node(s) and drove pods to Running');
+}
+
+// Ages node-c past the heartbeat timeout so the next reconcile evicts and reschedules its pods.
+function simulateNodeFailure() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    let nodes = readTab('Nodes');
+    const c = nodes.find(n => n.name === 'node-c');
+    if (c) { c.last_heartbeat = new Date(Date.now() - 5 * 60 * 1000).toISOString(); }
+    writeTab('Nodes', nodes);
+  } finally { lock.releaseLock(); }
+  reconcile();
+  // re-run the fake kubelet on SURVIVORS only (don't resurrect node-c) so the
+  // rescheduled pods show Running again while node-c stays NotReady.
+  simulate(['node-a', 'node-b']);
+  event('System', 'simulateNodeFailure', 'node-c failed; pods rescheduled');
 }

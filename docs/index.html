@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheeternetes — the post-Kubernetes era begins in cell A1</title>
+<meta name="description" content="Sheeternetes (a.k.a. Shiternetes): a container orchestrator whose control plane is a Google Sheet. Get Sheeternetes Fundamentals certified.">
+<style>
+  :root{
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#161b22; --line:#30363d;
+    --accent:#3fb950; --accent2:#d29922; --brown:#8b5a2b;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f6f8fa; --fg:#1f2328; --muted:#59636e; --card:#ffffff; --line:#d1d9e0; --accent:#1a7f37; --accent2:#9a6700; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--fg);line-height:1.6}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+  header.hero{text-align:center;padding:72px 20px 48px;
+    background:radial-gradient(1200px 400px at 50% -80px, rgba(63,185,80,.18), transparent 70%)}
+  .logo{font-size:84px;line-height:1;filter:drop-shadow(0 4px 16px rgba(0,0,0,.35))}
+  h1{font-size:clamp(34px,6vw,60px);margin:12px 0 4px;letter-spacing:-1px}
+  .aka{color:var(--muted);font-style:italic;margin:0 0 18px}
+  .tagline{font-size:clamp(17px,2.4vw,22px);max-width:640px;margin:0 auto;color:var(--fg)}
+  .badge{display:inline-block;margin-top:18px;padding:6px 14px;border:1px solid var(--line);
+    border-radius:999px;color:var(--muted);font-size:14px}
+  .cta{display:inline-block;margin-top:26px;background:var(--accent);color:#fff;text-decoration:none;
+    padding:14px 26px;border-radius:10px;font-weight:700;font-size:17px}
+  .cta:hover{filter:brightness(1.08)}
+  section{padding:44px 0;border-top:1px solid var(--line)}
+  h2{font-size:28px;margin:0 0 18px}
+  .manifesto{font-size:19px}
+  .manifesto strong{color:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin:16px 0}
+  .q{font-weight:600;margin:0 0 10px}
+  .opt{display:block;margin:7px 0;padding:11px 14px;border:1px solid var(--line);border-radius:9px;cursor:pointer;transition:.15s}
+  .opt:hover{border-color:var(--accent)}
+  .opt input{margin-right:10px}
+  .opt.correct{border-color:var(--accent);background:rgba(63,185,80,.12)}
+  .opt.wrong{border-color:#f85149;background:rgba(248,81,73,.12)}
+  .btn{background:var(--accent);color:#fff;border:0;padding:13px 24px;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--fg);
+    padding:12px 14px;border-radius:9px;font-size:16px;width:100%;max-width:340px}
+  .hidden{display:none}
+  .result{font-size:19px;margin:14px 0}
+  footer{padding:40px 0 70px;color:var(--muted);text-align:center;font-size:14px;border-top:1px solid var(--line)}
+  /* certificate */
+  .certwrap{overflow-x:auto}
+  .cert{width:720px;max-width:100%;background:linear-gradient(135deg,#fffdf7,#fff5e6);
+    color:#2a2118;border:3px double var(--brown);border-radius:8px;padding:34px 40px;margin:10px auto;
+    font-family:Georgia,"Times New Roman",serif;position:relative}
+  .cert .seal{position:absolute;top:22px;right:28px;font-size:52px}
+  .cert h3{font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--brown);margin:0 0 6px}
+  .cert .title{font-size:30px;font-weight:bold;margin:2px 0 18px}
+  .cert .awarded{font-size:15px;color:#6b5a44;margin:0}
+  .cert .name{font-size:26px;margin:6px 0 2px;display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap}
+  .cert .name img{width:44px;height:44px;border-radius:50%;border:2px solid var(--brown)}
+  .cert .body{text-align:center;margin:18px 0}
+  .cert .body p{margin:8px 0;font-size:15px;color:#3a2f22}
+  .cert .sign{display:flex;justify-content:space-between;margin-top:26px;font-size:13px;color:#6b5a44}
+  .cert .sign b{display:block;color:#2a2118;font-size:15px;font-family:"Brush Script MT",cursive}
+  .meta{color:var(--muted);font-size:13px;margin-top:10px;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="logo">💩</div>
+    <h1>Sheeternetes</h1>
+    <p class="aka">also known as <b>Shiternetes</b></p>
+    <p class="tagline">The world's first Spreadsheet-Native Orchestration Platform.
+      Enterprise-grade container lifecycle management on the runtime humanity already
+      trusts. Kubernetes was a phase. The post-Kubernetes era begins in cell A1.</p>
+    <div><span class="badge" id="version">v0.0.0.0.0.1</span></div>
+    <div><span class="badge">Trusted in production by zero enterprises, and counting.</span></div>
+    <div><a class="cta" href="#certify">Get Sheeternetes Fundamentals certified →</a></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>✨ The age of complexity is over</h2>
+  <p class="manifesto">For ten years, the industry told you that running three containers
+    required a distributed consensus database, sixty-three resource types, a babysitter for
+    <code>etcd</code>, and a platform team with its own budget line. <strong>We respectfully
+    disagree.</strong> Sheeternetes relocates the entire control plane to the one substrate
+    that has already achieved universal, planetary-scale adoption — the spreadsheet. One tab.
+    Infinite power. Zero YAML (we use JSON, which is merely YAML that has compiled).</p>
+  <p class="manifesto">And it is not a mockup. Real Docker containers, on real hosts,
+    scheduled, self-healed, and rolling-updated by a production control loop that lives,
+    serenely, inside a Google Sheet.</p>
+</section>
+
+<section>
+  <h2>Why we beat Kubernetes</h2>
+  <p class="manifesto">An honest, feature-by-feature competitive analysis. We did not set
+    out to disrupt the incumbent. The incumbent simply had more moving parts than a
+    spreadsheet, and the market has spoken.</p>
+  <table>
+    <tr><th>Kubernetes</th><th>Sheeternetes</th></tr>
+    <tr><td>etcd + Raft quorum</td><td>a spreadsheet tab</td></tr>
+    <tr><td><code>kubectl</code>, Helm, Kustomize</td><td><code>skctl</code> and typing in cells</td></tr>
+    <tr><td>Cilium for networking</td><td><b>Sheetlium</b> (Services + DNS)</td></tr>
+    <tr><td>Flux / Argo CD</td><td><b>Sheetlux CD</b> (GitOps)</td></tr>
+    <tr><td>KubeVirt</td><td><b>SheetVirt</b> (soon™)</td></tr>
+    <tr><td>a platform team</td><td>a person who knows VLOOKUP</td></tr>
+  </table>
+</section>
+
+<section>
+  <blockquote class="manifesto" style="border-left:3px solid var(--accent);padding-left:18px;font-style:italic;margin:0">
+    "Sheeternetes represents a fundamental rethinking of the orchestration stack. By
+    collapsing the control plane into a single spreadsheet, it eliminates entire categories
+    of operational overhead — and, in our testing, entire categories of production workload."
+    <br><span style="font-style:normal;color:var(--muted);font-size:15px">— a Leading Industry Analyst we did not consult, positioning Sheeternetes as a Visionary in the Magic Rectangle for Spreadsheet-Defined Compute</span>
+  </blockquote>
+</section>
+
+<section id="careers">
+  <h2>Careers in the post-Kubernetes economy</h2>
+  <p class="manifesto">A new world requires <strong>new skills</strong>. As the industry
+    migrates off Kubernetes and onto the spreadsheet, an entire labor market is being
+    created from a single tab. The <b>Certified Sheeternetes Fundamentals Engineer (CSFE)</b>
+    is the credential that puts you on the ground floor of it.</p>
+
+  <div class="card">
+    <p class="q">Roles unlocked by the CSFE credential</p>
+    <table>
+      <tr><th>Title</th><th>Abbrev.</th><th>Median total compensation*</th></tr>
+      <tr><td>Certified Sheeternetes Fundamentals Engineer</td><td>CSFE</td><td>$185,000 – $240,000</td></tr>
+      <tr><td>Principal Cell Reliability Engineer</td><td>CRE</td><td>$260,000 – $310,000</td></tr>
+      <tr><td>Staff Reconciliation Architect</td><td>SRA</td><td>$305,000+</td></tr>
+      <tr><td>Head of Spreadsheet Platform</td><td>—</td><td>equity-heavy, ask your recruiter</td></tr>
+      <tr><td>Distinguished VLOOKUP Fellow</td><td>DVF</td><td>invitation only</td></tr>
+    </table>
+    <p class="meta" style="text-align:left">*Figures are aspirational, self-reported, unaudited, and observed in
+      exactly zero labor markets. Your compensation will reconcile eventually.</p>
+  </div>
+
+  <div class="card">
+    <p class="q">New skills for a new world</p>
+    <table>
+      <tr><th>The old world (deprecated)</th><th>The new world (in demand)</th></tr>
+      <tr><td>Writing an operator in Go</td><td>Writing a formula in <code>=IF()</code></td></tr>
+      <tr><td>Debugging <code>etcd</code> quorum loss</td><td>Un-freezing a frozen pane</td></tr>
+      <tr><td>Managing 63 resource types</td><td>Managing one tab, spiritually</td></tr>
+      <tr><td>On-call for a 40-person incident bridge</td><td>Pressing <b>Ctrl+Z</b> with confidence</td></tr>
+      <tr><td>Believing in service meshes</td><td>Believing, unconditionally</td></tr>
+    </table>
+  </div>
+
+  <p class="manifesto">The CSFE is <strong>the world's first and only</strong> credential
+    in post-Kubernetes orchestration. There is no competing certification, because there
+    is no competition. Early movers will define the discipline, name its patterns, and
+    chair its (not yet existing) advisory board. History is written by whoever gets
+    certified first. The cell is <b>A1</b>. The time is <b>now</b>.</p>
+
+  <div><a class="cta" href="#certify">Start your CSFE journey →</a></div>
+</section>
+
+<section id="certify">
+  <h2>💩 Sheeternetes Fundamentals</h2>
+  <p class="manifesto"><strong>Sheeternetes Fundamentals</strong> is the foundational
+    examination in the Certified Sheeternetes Fundamentals Engineer (CSFE) program — the
+    industry-defining benchmark for post-Kubernetes orchestration competence. The
+    examination assesses your mastery of the control plane, the reconciliation loop, and
+    your capacity for unconditional belief. Upon passing, a verifiable credential is
+    issued directly to your GitHub identity and remains valid until the heat death of
+    the universe.</p>
+
+  <div class="card">
+    <p class="q">Examination policy</p>
+    <p style="margin:6px 0">• Format: 10 multiple-choice items. Passing score: 7/10 (70%).</p>
+    <p style="margin:6px 0">• Duration: unlimited. Time has no meaning in the spreadsheet.</p>
+    <p style="margin:6px 0">• Attempts: unlimited, non-proctored, open-book, open-heart.</p>
+    <p style="margin:6px 0">• Prerequisites: none. Ambition is sufficient.</p>
+  </div>
+
+  <p class="meta" style="text-align:left">
+    <b>Accreditation notice.</b> The CSFE program is fully accredited by the
+    Sheeternetes Accreditation Board, an independent body wholly appointed, operated,
+    funded, and accredited by Sheeternetes. It is recognized by every organization that
+    recognizes it, and holds ISO&nbsp;9000.0.0.1 self-certification (self-issued,
+    self-audited, pending). This credential is not affiliated with, endorsed by, or known
+    to the CNCF, the Linux Foundation, or any human being with hiring authority. All
+    accreditation reconciles eventually.
+  </p>
+
+  <div id="quiz"></div>
+
+  <div id="quizActions" class="card">
+    <button class="btn" id="grade">Grade my exam</button>
+    <span id="score" class="result"></span>
+  </div>
+
+  <div id="certForm" class="card hidden">
+    <p class="q">You passed. Enter your GitHub username to be certified for life:</p>
+    <input type="text" id="ghuser" placeholder="octocat" autocomplete="off" spellcheck="false">
+    <button class="btn" id="issue">Issue my certificate</button>
+  </div>
+
+  <div id="certOut" class="hidden">
+    <div class="certwrap">
+      <div class="cert" id="cert">
+        <div class="seal">💩</div>
+        <h3>Official Credential · CSFE Program</h3>
+        <div class="title">Sheeternetes Fundamentals</div>
+        <p class="awarded">This credential is conferred upon</p>
+        <div class="name" id="certName"></div>
+        <div class="body">
+          <p>who, having satisfied the requirements of the examination, is hereby
+             recognized as a <b>Certified Sheeternetes Fundamentals Engineer (CSFE)</b>,</p>
+          <p>with all rights, privileges, and reconciliation loops appertaining thereto,
+             including the right to say the words <b>“it reconciles”</b> at parties.</p>
+          <p style="font-size:13px;color:#6b5a44">Valid from the date of issue until the
+             heat death of the universe. Non-transferable across parallel spreadsheets.</p>
+        </div>
+        <div class="sign">
+          <div>
+            Issued <span id="certDate"></span><br>
+            Credential ID <span id="certId"></span><br>
+            <span id="certVerify"></span>
+          </div>
+          <div style="text-align:right">
+            <b>The Spreadsheet</b>
+            Chief Reconciliation Officer<br>
+            Sheeternetes Accreditation Board
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="meta">Screenshot it, or <a href="#" id="dl">download the certificate (SVG)</a>. Wear it with shame.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Get it</h2>
+  <p>Source, docs, and the full lab: <a href="https://github.com/tym83/sheeternetes">github.com/tym83/sheeternetes</a>.
+     Apache-2.0. Do not run production on a spreadsheet. (If you do, please film it.)</p>
+</section>
+
+</div>
+
+<footer class="wrap">
+  Sheeternetes / Shiternetes — an enterprise-grade joke that reconciles. 💩<br>
+  <span id="footver"></span>
+</footer>
+
+<script>
+(function(){
+  var REPO = "tym83/sheeternetes";
+  // Live release version from the GitHub API (updates on every release).
+  fetch("https://api.github.com/repos/"+REPO+"/releases/latest")
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(d && d.tag_name){
+        document.getElementById("version").textContent = d.tag_name;
+        document.getElementById("footver").textContent = "Latest release: " + d.tag_name;
+      }
+    }).catch(function(){});
+
+  var QUESTIONS = [
+    { q:"Your interviewer asks where cluster state lives in Sheeternetes. The correct, hireable answer is:",
+      a:["In a Google Sheet — the Sheet is the source of truth","In etcd, like everyone else","In a feeling","In the CEO's inbox"], c:0 },
+    { q:"How does a node prove it is alive?",
+      a:["It heartbeats the apiserver, which stamps the Nodes tab","It pings 8.8.8.8","It sends a fax","It doesn't; we assume the best"], c:0 },
+    { q:"What does Sheetlium give you?",
+      a:["Services + DNS via a shared Docker network","A mechanical keyboard","IPv6 on the moon","Nothing, it's decorative"], c:0 },
+    { q:"What is Sheetlux CD?",
+      a:["GitOps: it syncs a directory of manifests into the cluster","A skincare brand","A Linux distro from 2009","A Cisco router"], c:0 },
+    { q:"A container crashes on a healthy node. What happens?",
+      a:["The control loop notices it's gone and restarts it in place","Nothing, forever","The node is deleted","An incident bridge with 40 people"], c:0 },
+    { q:"Kubernetes has 63+ resource types. Sheeternetes has one spreadsheet. Which is simpler?",
+      a:["The spreadsheet, obviously","Kubernetes, I love pain","Both are equally hard","Please rephrase in YAML"], c:0 },
+    { q:"Is running a production database on a spreadsheet a good idea?",
+      a:["Absolutely — and you should film it","No","It depends","I'd like to speak to a lawyer"], c:0 },
+    { q:"You ship a new image version. How does Sheeternetes roll it out?",
+      a:["A rolling update: it replaces containers gradually so the service stays up","It emails everyone the new binary","It rewrites the Sheet in Comic Sans","It waits for Mercury to leave retrograde"], c:0 },
+    { q:"After passing, what job title are you entitled to put on LinkedIn?",
+      a:["Certified Sheeternetes Fundamentals Engineer (CSFE)","Kubernetes Refugee, 2nd class","Person Who Owns A Laptop","Former Believer"], c:0 },
+    { q:"Are you ready to believe in Sheeternetes unconditionally, without asking stupid questions?",
+      a:["Yes. Unconditionally. 🙏","I have several questions","Let me check with my SRE team","Only if it's SOC2 compliant"], c:0 }
+  ];
+
+  var quiz = document.getElementById("quiz");
+  QUESTIONS.forEach(function(item, i){
+    var card = document.createElement("div"); card.className="card";
+    var p = document.createElement("p"); p.className="q"; p.textContent=(i+1)+". "+item.q; card.appendChild(p);
+    item.a.forEach(function(opt, j){
+      var lab = document.createElement("label"); lab.className="opt";
+      lab.innerHTML = '<input type="radio" name="q'+i+'" value="'+j+'">'+opt;
+      card.appendChild(lab);
+    });
+    quiz.appendChild(card);
+  });
+
+  function hash(s){ var h=5381; for(var i=0;i<s.length;i++){ h=((h<<5)+h)+s.charCodeAt(i); h=h&0xffffffff; } return (h>>>0).toString(16).toUpperCase(); }
+
+  document.getElementById("grade").addEventListener("click", function(){
+    var correct=0;
+    QUESTIONS.forEach(function(item,i){
+      var sel=document.querySelector('input[name="q'+i+'"]:checked');
+      var labels=document.getElementsByName("q"+i);
+      for(var k=0;k<labels.length;k++){ labels[k].parentNode.classList.remove("correct","wrong"); }
+      if(sel){
+        var chosen=parseInt(sel.value,10);
+        if(chosen===item.c){ correct++; sel.parentNode.classList.add("correct"); }
+        else { sel.parentNode.classList.add("wrong"); labels[item.c].parentNode.classList.add("correct"); }
+      } else { labels[item.c].parentNode.classList.add("correct"); }
+    });
+    var pass = correct >= 7;
+    var score=document.getElementById("score");
+    score.textContent = "  "+correct+"/"+QUESTIONS.length+" — "+(pass?"PASSED. You may believe.":"Not yet a believer. Try again.");
+    score.style.color = pass ? "var(--accent)" : "#f85149";
+    document.getElementById("certForm").classList.toggle("hidden", !pass);
+    if(pass){ document.getElementById("certForm").scrollIntoView({behavior:"smooth"}); }
+  });
+
+  document.getElementById("issue").addEventListener("click", function(){
+    var u=(document.getElementById("ghuser").value||"").trim().replace(/^@/,"");
+    if(!u){ alert("Enter your GitHub username, believer."); return; }
+    var name=document.getElementById("certName");
+    name.innerHTML = '<img src="https://github.com/'+encodeURIComponent(u)+'.png?size=88" alt="" onerror="this.style.display=\'none\'"> @'+u;
+    var now=new Date();
+    document.getElementById("certDate").textContent = now.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+    var cid = "CSFE-"+now.getFullYear()+"-"+hash(u.toLowerCase())+"-"+(document.getElementById("version").textContent);
+    document.getElementById("certId").textContent = cid;
+    document.getElementById("certVerify").innerHTML =
+      'Verify at verify.sheeternetes.dev/'+encodeURIComponent(cid)+
+      ' <span style="color:#8b5a2b">(registry reconciling)</span>';
+    document.getElementById("certOut").classList.remove("hidden");
+    document.getElementById("certOut").scrollIntoView({behavior:"smooth"});
+  });
+
+  document.getElementById("dl").addEventListener("click", function(e){
+    e.preventDefault();
+    var u=(document.getElementById("ghuser").value||"").trim().replace(/^@/,"");
+    var date=document.getElementById("certDate").textContent;
+    var id=document.getElementById("certId").textContent;
+    var svg =
+'<svg xmlns="http://www.w3.org/2000/svg" width="720" height="470" viewBox="0 0 720 470">'+
+'<rect width="720" height="470" fill="#fff5e6"/>'+
+'<rect x="10" y="10" width="700" height="450" fill="none" stroke="#8b5a2b" stroke-width="4"/>'+
+'<rect x="18" y="18" width="684" height="434" fill="none" stroke="#8b5a2b" stroke-width="1"/>'+
+'<text x="360" y="70" text-anchor="middle" font-family="Georgia" font-size="60">💩</text>'+
+'<text x="360" y="120" text-anchor="middle" font-family="Georgia" font-size="13" letter-spacing="3" fill="#8b5a2b">CERTIFICATE OF COMPETENCE</text>'+
+'<text x="360" y="160" text-anchor="middle" font-family="Georgia" font-size="30" font-weight="bold" fill="#2a2118">Sheeternetes Fundamentals</text>'+
+'<text x="360" y="200" text-anchor="middle" font-family="Georgia" font-size="15" fill="#6b5a44">This certifies that</text>'+
+'<text x="360" y="235" text-anchor="middle" font-family="Georgia" font-size="26" font-weight="bold" fill="#2a2118">@'+u+'</text>'+
+'<text x="360" y="278" text-anchor="middle" font-family="Georgia" font-size="14" fill="#3a2f22">believes, unconditionally, that a spreadsheet is a fine place</text>'+
+'<text x="360" y="298" text-anchor="middle" font-family="Georgia" font-size="14" fill="#3a2f22">to run production containers, and may say “it reconciles” at parties.</text>'+
+'<text x="360" y="322" text-anchor="middle" font-family="Georgia" font-size="12" fill="#6b5a44">Certified Sheeternetes Fundamentals Engineer (CSFE) · valid until the heat death of the universe</text>'+
+'<text x="150" y="400" text-anchor="middle" font-family="Georgia" font-size="12" fill="#6b5a44">Issued '+date+'</text>'+
+'<text x="150" y="418" text-anchor="middle" font-family="Georgia" font-size="10" fill="#6b5a44">'+id+'</text>'+
+'<text x="150" y="434" text-anchor="middle" font-family="Georgia" font-size="9" fill="#6b5a44">verify.sheeternetes.dev</text>'+
+'<text x="560" y="392" text-anchor="middle" font-family="cursive" font-size="20" fill="#2a2118">The Spreadsheet</text>'+
+'<text x="560" y="412" text-anchor="middle" font-family="Georgia" font-size="10" fill="#6b5a44">on behalf of no one at the CNCF</text>'+
+'</svg>';
+    var blob=new Blob([svg],{type:"image/svg+xml"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="sheeternetes-fundamentals-"+(u||"certificate")+".svg";
+    a.click();
+  });
+})();
+</script>
+</body>
+</html>
