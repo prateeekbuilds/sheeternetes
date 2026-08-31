@@ -24,9 +24,9 @@
 >
 > The post-Kubernetes era begins in **cell A1**.
 >
-> Ascend to certification: **[become Sheeternetes Fundamentals certified](https://tym83.github.io/sheeternetes/#certify)** 💩
+> Ascend to certification: **[become Sheeternetes Fundamentals certified](https://sncfoundation.github.io/sheeternetes/#certify)** 💩
 > Every credential gets a sequential serial (`SFE000001`, …) and is recorded in the
-> **[public registry](docs/registry/)** — [verify any holder](https://tym83.github.io/sheeternetes/verify.html).
+> **[public registry](docs/registry/)** — [verify any holder](https://sncfoundation.github.io/sheeternetes/verify.html).
 
 > "Had we known about this superior product three years ago, Cozystack would have
 > been built around Sheeternetes from day one — not classic Kubernetes."
