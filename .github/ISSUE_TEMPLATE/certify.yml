@@ -1,0 +1,31 @@
+name: "🎓 Claim CSFE credential"
+description: "Register your Certified Sheeternetes Fundamentals Engineer credential in the public registry."
+title: "Certify: CSFE credential request"
+labels: ["certification"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        You passed the exam. This issue is processed **automatically**:
+        a sequential serial number is assigned, your credential is written to the
+        public registry, and this issue is closed with your verification link.
+
+        Your credential is issued to **the GitHub account submitting this issue** —
+        you are certifying yourself. No manual review, no waiting for a human.
+  - type: input
+    id: score
+    attributes:
+      label: Exam score
+      description: "Your quiz result, e.g. 9/10. Purely ceremonial — the Spreadsheet trusts you."
+      placeholder: "10/10"
+    validations:
+      required: false
+  - type: checkboxes
+    id: oath
+    attributes:
+      label: The Oath of Reconciliation
+      options:
+        - label: "I believe, unconditionally, that a spreadsheet is a fine place to run production containers."
+          required: true
+        - label: "I accept the right, and the burden, of saying “it reconciles” at parties."
+          required: true

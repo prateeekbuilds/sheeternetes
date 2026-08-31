@@ -1,0 +1,46 @@
+name: Issue CSFE credential
+
+# Turns a `certification` issue into a sequential, registry-backed credential.
+# The concurrency group serializes runs so the serial-number counter is race-free.
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write   # commit the registry to master (Pages source)
+  issues: write     # comment on and close the request
+
+concurrency:
+  group: csfe-registry
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    if: contains(github.event.issue.labels.*.name, 'certification')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Resolve latest release tag
+        id: rel
+        run: echo "tag=$(gh release view --json tagName -q .tagName 2>/dev/null || echo '')" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Issue credential
+        run: node .github/scripts/issue-credential.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          HOLDER: ${{ github.event.issue.user.login }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          RELEASE_TAG: ${{ steps.rel.outputs.tag }}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a CSFE credential — Sheeternetes</title>
+<meta name="description" content="Verify a Certified Sheeternetes Fundamentals Engineer (CSFE) credential against the public registry.">
+<meta property="og:title" content="Verify a CSFE credential — Sheeternetes">
+<meta property="og:description" content="Look up any Certified Sheeternetes Fundamentals Engineer in the public registry.">
+<meta property="og:image" content="https://tym83.github.io/sheeternetes/social-card.png">
+<meta property="og:url" content="https://tym83.github.io/sheeternetes/verify.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#161b22; --line:#30363d;
+    --accent:#3fb950; --accent2:#d29922; --brown:#8b5a2b; --bad:#f85149;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f6f8fa; --fg:#1f2328; --muted:#59636e; --card:#ffffff; --line:#d1d9e0; --accent:#1a7f37; --accent2:#9a6700; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--fg);line-height:1.6}
+  a{color:var(--accent)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+  header.hero{text-align:center;padding:56px 20px 32px;
+    background:radial-gradient(1200px 400px at 50% -80px, rgba(63,185,80,.18), transparent 70%)}
+  .logo{font-size:64px;line-height:1;filter:drop-shadow(0 4px 16px rgba(0,0,0,.35))}
+  h1{font-size:clamp(28px,5vw,44px);margin:10px 0 4px;letter-spacing:-1px}
+  .tagline{color:var(--muted);margin:0 auto;max-width:560px}
+  section{padding:34px 0;border-top:1px solid var(--line)}
+  h2{font-size:24px;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin:16px 0}
+  input[type=text]{background:var(--bg);border:1px solid var(--line);color:var(--fg);
+    padding:12px 14px;border-radius:9px;font-size:16px;width:100%;max-width:340px}
+  .btn{background:var(--accent);color:#fff;border:0;padding:12px 22px;border-radius:10px;font-weight:700;font-size:16px;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .hidden{display:none}
+  .status{font-size:18px;margin:10px 0;font-weight:600}
+  .status.ok{color:var(--accent)}
+  .status.bad{color:var(--bad)}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em}
+  .meta{color:var(--muted);font-size:13px;margin-top:10px}
+  footer{padding:36px 0 60px;color:var(--muted);text-align:center;font-size:14px;border-top:1px solid var(--line)}
+  /* certificate */
+  .certwrap{overflow-x:auto}
+  .cert{width:720px;max-width:100%;background:linear-gradient(135deg,#fffdf7,#fff5e6);
+    color:#2a2118;border:3px double var(--brown);border-radius:8px;padding:34px 40px;margin:10px auto;
+    font-family:Georgia,"Times New Roman",serif;position:relative}
+  .cert .seal{position:absolute;top:22px;right:28px;font-size:52px}
+  .cert h3{font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--brown);margin:0 0 6px}
+  .cert .title{font-size:30px;font-weight:bold;margin:2px 0 18px}
+  .cert .awarded{font-size:15px;color:#6b5a44;margin:0}
+  .cert .name{font-size:26px;margin:6px 0 2px;display:flex;align-items:center;gap:12px;justify-content:center;flex-wrap:wrap}
+  .cert .name img{width:44px;height:44px;border-radius:50%;border:2px solid var(--brown)}
+  .cert .body{text-align:center;margin:18px 0}
+  .cert .body p{margin:8px 0;font-size:15px;color:#3a2f22}
+  .cert .sign{display:flex;justify-content:space-between;margin-top:26px;font-size:13px;color:#6b5a44}
+  .cert .sign b{display:block;color:#2a2118;font-size:15px;font-family:"Brush Script MT",cursive}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="logo">💩</div>
+    <h1>Credential Verification</h1>
+    <p class="tagline">Look up any <b>Certified Sheeternetes Fundamentals Engineer (CSFE)</b>
+      against the public registry. For HR, hiring managers, and sceptics.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <div class="card">
+    <div class="row">
+      <input type="text" id="query" placeholder="Serial (SFE000042) or GitHub username" autocomplete="off" spellcheck="false">
+      <button class="btn" id="lookup">Verify</button>
+    </div>
+    <p class="meta">Tip: link straight to a credential with
+      <code>verify.html?id=SFE000042</code>.</p>
+  </div>
+
+  <div id="result"></div>
+</section>
+
+<section id="allSection">
+  <h2>Full registry (<span id="count">0</span>)</h2>
+  <p class="meta">The complete list is also browsable as files at
+    <a href="registry/">/registry/</a> and on
+    <a href="https://github.com/tym83/sheeternetes/tree/master/docs/registry">GitHub</a>.</p>
+  <div class="certwrap">
+    <table id="all">
+      <thead><tr><th>Serial</th><th>Holder</th><th>Issued</th><th>Score</th><th>Release</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<footer class="wrap">
+  <a href="index.html">← Back to Sheeternetes</a> · an enterprise-grade joke that reconciles. 💩
+</footer>
+
+<script>
+(function(){
+  var PAGES_BASE = ".";
+  var result = document.getElementById("result");
+  var registry = { certificates: [] };
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+  function renderCert(rec){
+    var u = rec.holder;
+    return ''+
+    '<div class="status ok">✔ Valid credential — recorded in the registry.</div>'+
+    '<div class="certwrap"><div class="cert">'+
+      '<div class="seal">💩</div>'+
+      '<h3>Official Credential · CSFE Program</h3>'+
+      '<div class="title">Sheeternetes Fundamentals</div>'+
+      '<p class="awarded">This credential is conferred upon</p>'+
+      '<div class="name"><img src="https://github.com/'+encodeURIComponent(u)+'.png?size=88" alt="" onerror="this.style.display=\'none\'"> @'+esc(u)+'</div>'+
+      '<div class="body">'+
+        '<p>who, having satisfied the requirements of the examination, is hereby recognized as a '+
+          '<b>Certified Sheeternetes Fundamentals Engineer (CSFE)</b>,</p>'+
+        '<p>with all rights, privileges, and reconciliation loops appertaining thereto, '+
+          'including the right to say the words <b>&ldquo;it reconciles&rdquo;</b> at parties.</p>'+
+        '<p style="font-size:13px;color:#6b5a44">Valid from the date of issue until the heat death '+
+          'of the universe. Non-transferable across parallel spreadsheets.</p>'+
+      '</div>'+
+      '<div class="sign">'+
+        '<div>Issued '+esc(rec.date)+'<br>Credential ID '+esc(rec.serial)+'<br>'+
+          (rec.release ? 'Release '+esc(rec.release)+'<br>' : '')+
+          'Registry: verified</div>'+
+        '<div style="text-align:right"><b>The Spreadsheet</b>Chief Reconciliation Officer<br>Sheeternetes Accreditation Board</div>'+
+      '</div>'+
+    '</div></div>'+
+    '<div class="card"><table>'+
+      '<tr><th>Credential ID</th><td><code>'+esc(rec.serial)+'</code></td></tr>'+
+      '<tr><th>Holder</th><td><a href="https://github.com/'+encodeURIComponent(u)+'">@'+esc(u)+'</a></td></tr>'+
+      '<tr><th>Issued</th><td>'+esc(rec.date)+'</td></tr>'+
+      '<tr><th>Exam score</th><td>'+esc(rec.score||"—")+'</td></tr>'+
+      '<tr><th>Release</th><td>'+esc(rec.release||"—")+'</td></tr>'+
+      (rec.issue ? '<tr><th>Issued via</th><td><a href="'+esc(rec.issue)+'">request #'+esc(rec.issue_number)+'</a></td></tr>' : '')+
+    '</table>'+
+    '<p style="margin-top:14px"><button class="btn ghost" id="dl">Download certificate (SVG)</button></p>'+
+    '</div>';
+  }
+
+  function svgFor(rec){
+    var u=rec.holder;
+    return ''+
+'<svg xmlns="http://www.w3.org/2000/svg" width="720" height="470" viewBox="0 0 720 470">'+
+'<rect width="720" height="470" fill="#fff5e6"/>'+
+'<rect x="10" y="10" width="700" height="450" fill="none" stroke="#8b5a2b" stroke-width="4"/>'+
+'<rect x="18" y="18" width="684" height="434" fill="none" stroke="#8b5a2b" stroke-width="1"/>'+
+'<text x="360" y="70" text-anchor="middle" font-family="Georgia" font-size="60">💩</text>'+
+'<text x="360" y="120" text-anchor="middle" font-family="Georgia" font-size="13" letter-spacing="3" fill="#8b5a2b">CERTIFICATE OF COMPETENCE</text>'+
+'<text x="360" y="160" text-anchor="middle" font-family="Georgia" font-size="30" font-weight="bold" fill="#2a2118">Sheeternetes Fundamentals</text>'+
+'<text x="360" y="200" text-anchor="middle" font-family="Georgia" font-size="15" fill="#6b5a44">This certifies that</text>'+
+'<text x="360" y="235" text-anchor="middle" font-family="Georgia" font-size="26" font-weight="bold" fill="#2a2118">@'+esc(u)+'</text>'+
+'<text x="360" y="278" text-anchor="middle" font-family="Georgia" font-size="14" fill="#3a2f22">believes, unconditionally, that a spreadsheet is a fine place</text>'+
+'<text x="360" y="298" text-anchor="middle" font-family="Georgia" font-size="14" fill="#3a2f22">to run production containers, and may say &#8220;it reconciles&#8221; at parties.</text>'+
+'<text x="360" y="322" text-anchor="middle" font-family="Georgia" font-size="12" fill="#6b5a44">Certified Sheeternetes Fundamentals Engineer (CSFE) · valid until the heat death of the universe</text>'+
+'<text x="150" y="400" text-anchor="middle" font-family="Georgia" font-size="12" fill="#6b5a44">Issued '+esc(rec.date)+'</text>'+
+'<text x="150" y="418" text-anchor="middle" font-family="Georgia" font-size="11" fill="#6b5a44">'+esc(rec.serial)+'</text>'+
+'<text x="150" y="434" text-anchor="middle" font-family="Georgia" font-size="9" fill="#6b5a44">tym83.github.io/sheeternetes/verify.html</text>'+
+'<text x="560" y="392" text-anchor="middle" font-family="cursive" font-size="20" fill="#2a2118">The Spreadsheet</text>'+
+'<text x="560" y="412" text-anchor="middle" font-family="Georgia" font-size="10" fill="#6b5a44">on behalf of no one at the CNCF</text>'+
+'</svg>';
+  }
+
+  function showNotFound(q){
+    result.innerHTML = '<div class="status bad">✗ No credential found for “'+esc(q)+'”.</div>'+
+      '<p class="meta">Either it was never issued, or the serial is mistyped. '+
+      'Anyone can get one at <a href="index.html#certify">the exam</a>.</p>';
+  }
+
+  function show(rec){
+    result.innerHTML = renderCert(rec);
+    var dl = document.getElementById("dl");
+    if(dl){ dl.addEventListener("click", function(){
+      var blob=new Blob([svgFor(rec)],{type:"image/svg+xml"});
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="csfe-"+rec.serial+"-"+rec.holder+".svg";
+      a.click();
+    }); }
+  }
+
+  function lookup(q){
+    q=(q||"").trim().replace(/^@/,"");
+    if(!q){ result.innerHTML=""; return; }
+    var byId = registry.certificates.filter(function(c){ return c.serial.toLowerCase()===q.toLowerCase(); });
+    var byUser = registry.certificates.filter(function(c){ return (c.holder||"").toLowerCase()===q.toLowerCase(); });
+    var hit = byId[0] || byUser[0];
+    if(hit){ show(hit); } else { showNotFound(q); }
+  }
+
+  function renderAll(){
+    document.getElementById("count").textContent = registry.certificates.length;
+    var tb = document.querySelector("#all tbody");
+    if(!registry.certificates.length){
+      tb.innerHTML = '<tr><td colspan="5" class="meta">No credentials issued yet. Be the first.</td></tr>';
+      return;
+    }
+    tb.innerHTML = registry.certificates.map(function(c){
+      return '<tr><td><a href="?id='+encodeURIComponent(c.serial)+'"><code>'+esc(c.serial)+'</code></a></td>'+
+        '<td><a href="https://github.com/'+encodeURIComponent(c.holder)+'">@'+esc(c.holder)+'</a></td>'+
+        '<td>'+esc(c.date)+'</td><td>'+esc(c.score||"—")+'</td><td>'+esc(c.release||"—")+'</td></tr>';
+    }).join("");
+  }
+
+  var input = document.getElementById("query");
+  document.getElementById("lookup").addEventListener("click", function(){ lookup(input.value); });
+  input.addEventListener("keydown", function(e){ if(e.key==="Enter") lookup(input.value); });
+
+  // Load registry, then honour ?id= / ?user= deep links.
+  fetch(PAGES_BASE+"/registry/index.json?_="+Date.now())
+    .then(function(r){ return r.ok ? r.json() : {certificates:[]}; })
+    .then(function(d){
+      registry = d && Array.isArray(d.certificates) ? d : {certificates:[]};
+      renderAll();
+      var p = new URLSearchParams(location.search);
+      var id = p.get("id") || p.get("user") || p.get("holder");
+      if(id){ input.value=id; lookup(id); }
+    })
+    .catch(function(){ renderAll(); });
+})();
+</script>
+</body>
+</html>
