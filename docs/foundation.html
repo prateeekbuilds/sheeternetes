@@ -64,6 +64,7 @@
   <span class="links">
     <a href="product.html">Product</a>
     <a href="foundation.html">Foundation</a>
+    <a href="landscape.html">Landscape</a>
     <a href="index.html#certify">Certify</a>
     <a href="verify.html">Verify</a>
     <a href="https://github.com/tym83/sheeternetes">GitHub</a>
@@ -110,23 +111,69 @@
   </div>
 </section>
 
+<section id="maturity">
+  <h2>Maturity levels</h2>
+  <p class="lead">SNCF projects advance through three tiers — the natural lifecycle of any
+    spreadsheet. Projects that stop reconciling fall out the bottom.</p>
+  <div class="grid">
+    <div class="card"><div class="tier"><h3>📝 Unsaved Draft</h3><span class="pill">early</span></div>
+      <p>An experiment in a cell. No stability promised; may vanish on refresh. All projects
+        start here, full of hope and #REF! errors.</p></div>
+    <div class="card"><div class="tier"><h3>💾 Autosaving</h3><span class="pill">mid</span></div>
+      <p>Proven enough that Google keeps saving it. Real adopters, a maintainer, and a
+        reconcile loop that mostly holds.</p></div>
+    <div class="card"><div class="tier"><h3>🏛️ Load-Bearing</h3><span class="pill">mature</span></div>
+      <p>Mission-critical. An entire company secretly depends on this tab. Deleting it is a
+        resignation letter. The highest honor the SNCF confers.</p></div>
+  </div>
+
+  <h3 style="margin-top:26px">Promotion rules</h3>
+  <p class="meta">Advancement is decided by the Technical Oversight Cell (TOC). Criteria are
+    exacting, self-defined, and reconcile eventually.</p>
+  <div class="grid">
+    <div class="card"><h3>Unsaved Draft → Autosaving</h3>
+      <ul>
+        <li>≥ 2 believers actually using it.</li>
+        <li>A README and a maintainer who answers issues within one heat-death of the universe.</li>
+        <li>Survives one full reconcile loop without emitting a <code>#REF!</code>.</li>
+        <li>Sponsored by at least one existing SNCF project.</li>
+      </ul></div>
+    <div class="card"><h3>Autosaving → Load-Bearing</h3>
+      <ul>
+        <li>≥ 3 independent adopters running it "in production" (proof: they filmed it).</li>
+        <li>A documented disaster-recovery story (i.e. "we pressed Ctrl+Z").</li>
+        <li>A <code>SECURITY.md</code> cell and no single formula longer than its visible column.</li>
+        <li>Two maintainers from different tabs.</li>
+        <li>Majority vote of the TOC.</li>
+      </ul></div>
+    <div class="card"><h3>Any tier → Archived <code>#REF!</code></h3>
+      <ul>
+        <li>No maintainer response within a heat-death, or the source tab was deleted.</li>
+        <li>Marked <code>#REF!</code> and moved to the archive workbook.</li>
+        <li>Reinstatement requires a new believer and a fresh reconcile.</li>
+      </ul></div>
+  </div>
+</section>
+
 <section>
   <h2>Landscape</h2>
-  <p class="meta">The SNCF hosts projects across maturity levels. Like other landscapes, it is
-    large, confusing, and mostly one thing.</p>
+  <p class="meta">The SNCF hosts projects across the three tiers. Like other landscapes, it is
+    large, confusing, and mostly one thing. See the full
+    <a href="landscape.html">SNCF Landscape →</a></p>
   <div class="grid">
-    <div class="card"><div class="tier"><h3>Sheeternetes</h3><span class="pill">Graduated</span></div>
+    <div class="card"><div class="tier"><h3>Sheeternetes</h3><span class="pill">🏛️ Load-Bearing</span></div>
       <p>Spreadsheet-native container orchestration. The flagship. Reconciles.</p></div>
-    <div class="card"><div class="tier"><h3>Sheetlium</h3><span class="pill">Incubating</span></div>
-      <p>Service discovery &amp; load balancing over a shared network. Services, natively.</p></div>
-    <div class="card"><div class="tier"><h3>Sheetlux CD</h3><span class="pill">Incubating</span></div>
-      <p>GitOps for the Sheet: sync a directory of manifests into desired state.</p></div>
-    <div class="card"><div class="tier"><h3>skctl</h3><span class="pill">Sandbox</span></div>
-      <p>The command-line client. kubectl muscle memory, spreadsheet backend.</p></div>
-    <div class="card"><div class="tier"><h3>SheetOS</h3><span class="pill">Proposed</span></div>
-      <p>An operating system whose kernel is Apps Script and whose memory is cells. A moonshot.</p></div>
-    <div class="card"><div class="tier"><h3>CSFE Registry</h3><span class="pill">Graduated</span></div>
+    <div class="card"><div class="tier"><h3>CSFE Registry</h3><span class="pill">🏛️ Load-Bearing</span></div>
       <p>The verifiable credential registry for certified engineers.</p></div>
+    <div class="card"><div class="tier"><h3>Sheetlium</h3><span class="pill">💾 Autosaving</span></div>
+      <p>Service discovery &amp; load balancing over a shared network. Services, natively.</p></div>
+    <div class="card"><div class="tier"><h3>Sheetlux CD</h3><span class="pill">💾 Autosaving</span></div>
+      <p>GitOps for the Sheet: sync a directory of manifests into desired state.</p></div>
+    <div class="card"><div class="tier"><h3>skctl</h3><span class="pill">💾 Autosaving</span></div>
+      <p>The command-line client. kubectl muscle memory, spreadsheet backend.</p></div>
+    <div class="card"><div class="tier"><h3>SheetOS</h3><span class="pill">📝 Unsaved Draft</span></div>
+      <p>Talos for spreadsheets: a minimal, API-only, declarative node OS whose single job is to
+        bootstrap and run Sheeternetes. Distributable across many sheets. A moonshot.</p></div>
   </div>
 </section>
 
