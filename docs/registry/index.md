@@ -3,7 +3,7 @@
 The public, tamper-evident registry of everyone certified as a
 **Certified Sheeternetes Fundamentals Engineer (CSFE)**.
 
-- **0** credentials issued to date.
+- **1** credentials issued to date.
 - Anyone (HR, hiring managers, the merely curious) can verify a holder here or at
   [https://tym83.github.io/sheeternetes/verify.html](https://tym83.github.io/sheeternetes/verify.html).
 - Each credential is a JSON file in this folder (`SFEnnnnnn.json`) and a row below.
@@ -11,4 +11,4 @@ The public, tamper-evident registry of everyone certified as a
 
 | Serial | Holder | Issued | Score | Release | Request |
 |--------|--------|--------|-------|---------|---------|
-| _no credentials issued yet_ | | | | | |
+| `SFE000001` | [@tym83](https://github.com/tym83) | 2026-08-31 | 10/10 | v0.0.0.0.0.2 | [#5](https://github.com/tym83/sheeternetes/issues/5) |
