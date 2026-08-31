@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheeternetes — the product · Spreadsheet-Native Orchestration</title>
+<meta name="description" content="Why Sheeternetes: the world's first Spreadsheet-Native Orchestration Platform, compared with Kubernetes, Nomad, Docker Swarm, and Cloud Foundry.">
+<meta property="og:title" content="Sheeternetes — the product">
+<meta property="og:description" content="Spreadsheet-Native Orchestration. Advantages, and an honest comparison with Kubernetes, Nomad, Swarm, and Cloud Foundry.">
+<meta property="og:image" content="https://tym83.github.io/sheeternetes/social-card.png">
+<meta property="og:url" content="https://tym83.github.io/sheeternetes/product.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tym83.github.io/sheeternetes/social-card.png">
+<style>
+  :root{
+    --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --card:#161b22; --line:#30363d;
+    --accent:#3fb950; --accent2:#d29922; --brown:#8b5a2b; --bad:#f85149;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f6f8fa; --fg:#1f2328; --muted:#59636e; --card:#ffffff; --line:#d1d9e0; --accent:#1a7f37; --accent2:#9a6700; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--fg);line-height:1.6}
+  a{color:var(--accent)}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px}
+  nav.nav{border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+  nav.nav .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px;flex-wrap:wrap}
+  nav.nav a{color:var(--fg);text-decoration:none;font-size:15px}
+  nav.nav a:hover{color:var(--accent)}
+  nav.nav .brand{font-weight:700}
+  nav.nav .links a{margin-left:16px}
+  header.hero{text-align:center;padding:60px 20px 36px;
+    background:radial-gradient(1200px 400px at 50% -80px, rgba(63,185,80,.18), transparent 70%)}
+  .logo{font-size:64px;line-height:1;filter:drop-shadow(0 4px 16px rgba(0,0,0,.35))}
+  h1{font-size:clamp(30px,5vw,50px);margin:10px 0 6px;letter-spacing:-1px}
+  .tagline{font-size:clamp(16px,2.2vw,20px);max-width:640px;margin:0 auto;color:var(--fg)}
+  .cta{display:inline-block;margin-top:22px;background:var(--accent);color:#fff;text-decoration:none;
+    padding:13px 24px;border-radius:10px;font-weight:700;font-size:16px}
+  .cta.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);margin-left:8px}
+  section{padding:40px 0;border-top:1px solid var(--line)}
+  h2{font-size:26px;margin:0 0 16px}
+  h3{font-size:19px;margin:0 0 6px}
+  p.lead{font-size:18px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card .ic{font-size:26px}
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:720px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  td.us{color:var(--accent);font-weight:600}
+  code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.9em}
+  .meta{color:var(--muted);font-size:13px}
+  footer{padding:40px 0 70px;color:var(--muted);text-align:center;font-size:14px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="wrap">
+  <a class="brand" href="index.html">💩 Sheeternetes</a>
+  <span class="links">
+    <a href="product.html">Product</a>
+    <a href="foundation.html">Foundation</a>
+    <a href="landscape.html">Landscape</a>
+    <a href="index.html#certify">Certify</a>
+    <a href="verify.html">Verify</a>
+    <a href="https://github.com/tym83/sheeternetes">GitHub</a>
+  </span>
+</div></nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="logo">💩</div>
+    <h1>The Spreadsheet-Native Orchestration Platform</h1>
+    <p class="tagline">Sheeternetes runs your containers on the only runtime humanity already
+      trusts with its most critical data: the Google Sheet. No clusters. No etcd. No YAML.
+      Just Infinite Power, one row at a time.</p>
+    <div>
+      <a class="cta" href="index.html#certify">Get certified →</a>
+      <a class="cta ghost" href="#compare">See the comparison</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h2>Why Sheeternetes</h2>
+  <p class="lead">Kubernetes solved container orchestration by adding a distributed operating
+    system, a consensus database, and sixty-three resource types. Sheeternetes solves it by
+    opening a spreadsheet. One of these you can explain to your CFO.</p>
+  <div class="grid">
+    <div class="card"><div class="ic">🧾</div><h3>Zero infrastructure</h3>
+      <p>The control plane is a Google Sheet. Nothing to provision, patch, or page you at 3am.
+        Google keeps the lights on; you keep the tab open.</p></div>
+    <div class="card"><div class="ic">🚫</div><h3>No YAML</h3>
+      <p>Workloads are rows. If you must serialize, we emit JSON — which is merely YAML that
+        has already compiled. Indentation-related outages: eliminated.</p></div>
+    <div class="card"><div class="ic">🗄️</div><h3>No etcd</h3>
+      <p>State lives in cells. The source of truth is a thing your whole company can already
+        read, filter, and accidentally sort by column B.</p></div>
+    <div class="card"><div class="ic">🔁</div><h3>It reconciles</h3>
+      <p>A real control loop: heartbeat-driven scheduling, self-healing on node loss,
+        restart-on-crash, and rolling updates with <code>maxUnavailable=1</code>.</p></div>
+    <div class="card"><div class="ic">🕸️</div><h3>Services &amp; DNS (Sheetlium)</h3>
+      <p>A shared Docker network with service aliases gives you service discovery and basic
+        load balancing — Services, without the CRDs.</p></div>
+    <div class="card"><div class="ic">🚀</div><h3>GitOps (Sheetlux CD)</h3>
+      <p>Point <code>./sheetlux</code> at a directory of manifests and it syncs desired state
+        into the Sheet. Declarative delivery, spreadsheet-native.</p></div>
+    <div class="card"><div class="ic">👀</div><h3>Observability by staring</h3>
+      <p>Your dashboard is the Deployments tab. Conditional formatting is your alerting stack.
+        Mean time to insight: one glance.</p></div>
+    <div class="card"><div class="ic">💸</div><h3>$0 control-plane bill</h3>
+      <p>The most cost-optimized orchestrator in the industry, because the industry forgot to
+        check whether a spreadsheet counts. It does now.</p></div>
+  </div>
+</section>
+
+<section id="compare">
+  <h2>Honest comparison</h2>
+  <p class="meta">Every column is a real, respectable orchestrator. One of them is a spreadsheet.
+    We report the facts; you draw the obvious conclusion.</p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>&nbsp;</th>
+          <th>Sheeternetes 💩</th>
+          <th>Kubernetes</th>
+          <th>HashiCorp Nomad</th>
+          <th>Docker Swarm</th>
+          <th>Cloud Foundry</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th>Control plane</th><td class="us">A Google Sheet</td><td>etcd + API server + controllers + scheduler</td><td>Raft + server nodes</td><td>Raft-backed managers</td><td>BOSH + Diego</td></tr>
+        <tr><th>Lines of YAML for hello-world</th><td class="us">0 (we use JSON)</td><td>~40</td><td>~15 (HCL)</td><td>~12</td><td>a manifest and a prayer</td></tr>
+        <tr><th>Distributed consensus DB required</th><td class="us">No — it's a Sheet</td><td>Yes (etcd)</td><td>Yes (Raft)</td><td>Yes (Raft)</td><td>Yes</td></tr>
+        <tr><th>Editable by your CFO</th><td class="us">Yes</td><td>No</td><td>No</td><td>No</td><td>Absolutely not</td></tr>
+        <tr><th>Learning curve</th><td class="us">One afternoon</td><td>One career</td><td>One week</td><td>One weekend</td><td>One reorg</td></tr>
+        <tr><th>Observability</th><td class="us">Open the tab</td><td>Prometheus + Grafana + a team</td><td>Metrics API</td><td>Limited</td><td>Loggregator</td></tr>
+        <tr><th>Spreadsheet-native</th><td class="us">✅ Only us</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+        <tr><th>Control-plane cost</th><td class="us">$0</td><td>$$$</td><td>$$</td><td>$</td><td>$$$</td></tr>
+        <tr><th>Time travel (undo)</th><td class="us">Ctrl+Z (revision history)</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+        <tr><th>Safe for production at scale</th><td class="us">Please don't</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+        <tr><th>Governed by</th><td class="us">Sheet-Native Computing Foundation</td><td>CNCF</td><td>HashiCorp</td><td>Docker</td><td>CF Foundation</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="meta">Disclaimer: this is an enterprise-grade joke. Do not run production on a
+    spreadsheet. (If you do, please film it.)</p>
+</section>
+
+<section>
+  <h2>How it works, in one breath</h2>
+  <p>Apps Script is the API server, scheduler, and reconcile loop. The Google Sheet
+    (tabs: Deployments, Nodes, Pods, Events) is etcd. <code>kubelet.sh</code> on your Docker
+    hosts is the kubelet; <code>skctl</code> is your kubectl. Nodes heartbeat the API server,
+    the scheduler bin-packs by CPU <em>and</em> memory, and the loop keeps desired state and
+    reality in agreement. It is exactly Kubernetes, if Kubernetes were a spreadsheet and also
+    a joke.</p>
+  <div>
+    <a class="cta" href="index.html#certify">Become a Certified Sheeternetes Fundamentals Engineer →</a>
+    <a class="cta ghost" href="https://github.com/tym83/sheeternetes/blob/master/ROADMAP.md">Roadmap</a>
+  </div>
+</section>
+
+</div>
+
+<footer class="wrap">
+  Sheeternetes / Shiternetes — an enterprise-grade joke that reconciles. 💩<br>
+  A project of the <a href="foundation.html">Sheet-Native Computing Foundation</a>.
+</footer>
+
+</body>
+</html>

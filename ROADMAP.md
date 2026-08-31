@@ -54,6 +54,22 @@ Ctrl+Z. The only orchestrator with time travel out of the box.
 A cost dashboard for the runtime humanity already trusts. Infrastructure spend: $0.
 The whole section exists to brag about it.
 
+## Cloud
+
+### ⚪ Cloud connectors · [#15](https://github.com/tym83/sheeternetes/issues/15)
+Run containers on **managed cloud backends**, not only local Docker hosts. A connector
+implements the `kubelet.sh` contract against a cloud's REST API — the Sheet stays the
+single source of truth ("Sheet-Ops" across clouds). Bearer-token clouds can be driven
+straight from Apps Script (`UrlFetchApp`); AWS is best driven by a standalone agent.
+Caveats: serverless backends self-manage restart/scale, Sheetlium's service DNS does not
+carry over, and credentials live in a `Secret`, never a cell.
+
+- 🟢 easy MVPs: [DigitalOcean](https://github.com/tym83/sheeternetes/issues/16) ·
+  [GCP Cloud Run](https://github.com/tym83/sheeternetes/issues/17) ·
+  [Yandex Serverless Containers](https://github.com/tym83/sheeternetes/issues/18)
+- 🟡 medium: [Azure Container Instances](https://github.com/tym83/sheeternetes/issues/19)
+- 🔴 hard (SigV4): [AWS ECS/Fargate](https://github.com/tym83/sheeternetes/issues/20)
+
 ## How to influence the roadmap
 Browse the [`good first issue` proposals](https://github.com/tym83/sheeternetes/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 and open a PR against one. Or open a new issue. Or don't — it reconciles either way.
