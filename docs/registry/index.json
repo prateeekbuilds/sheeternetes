@@ -1,6 +1,6 @@
 {
   "program": "Certified Sheeternetes Fundamentals Engineer (CSFE)",
-  "count": 1,
+  "count": 2,
   "certificates": [
     {
       "serial": "SFE000001",
@@ -11,6 +11,17 @@
       "release": "v0.0.0.0.0.2",
       "issue": "https://github.com/tym83/sheeternetes/issues/5",
       "issue_number": 5,
+      "program": "Certified Sheeternetes Fundamentals Engineer (CSFE)"
+    },
+    {
+      "serial": "SFE000002",
+      "seq": 2,
+      "holder": "GoodDingo",
+      "date": "2026-08-31",
+      "score": "9/10",
+      "release": "v0.0.0.0.0.2",
+      "issue": "https://github.com/tym83/sheeternetes/issues/37",
+      "issue_number": 37,
       "program": "Certified Sheeternetes Fundamentals Engineer (CSFE)"
     }
   ],
