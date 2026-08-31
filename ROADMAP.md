@@ -1,0 +1,54 @@
+# Sheeternetes Roadmap
+
+> Sheeternetes is an enterprise-grade joke that reconciles. The roadmap is also a
+> joke, but — like the control plane — it is a joke you can actually run. Items ship
+> when they ship. Time has no meaning in the spreadsheet.
+
+Status legend: 🟢 shipped · 🟡 in progress · ⚪ planned · 💭 idea
+
+## Flagship
+
+### ⚪ Cozystack managed application
+Package Sheeternetes as a **Cozystack managed application** — a Helm chart delivered
+as a FluxCD `HelmRelease`, installable from the Cozystack marketplace into any tenant.
+Deploy a spreadsheet-native control plane the same way you'd deploy Postgres or Redis.
+The post-Kubernetes era, now Kubernetes-native.
+
+- Helm chart wrapping the runtime (`kubelet.sh`, control loop, Sheetlium, Sheetlux CD).
+- Cozystack catalog metadata + tenant-scoped install.
+- Secrets: Google service-account credentials via a `Secret`, not a cell.
+
+## Certification
+
+### ⚪ CSFE Professional / Expert tiers
+Beyond Fundamentals: **CSFE-Pro** and **CSFE-Expert**. Harder exams, re-certification
+windows, and a version-gated syllabus. Same registry, richer serials, more shame.
+
+### ⚪ Verification badge
+A shields.io-style SVG badge (`CSFE · SFE000001`) served from the registry, droppable
+into any README or LinkedIn. Green if valid, brown if it reconciles.
+
+## Runtime
+
+### ⚪ skctl ↔ kubectl parity
+Grow `skctl` toward drop-in kubectl muscle memory: `get`, `describe`, `logs`,
+`apply -f`, `-o yaml`. The joke lands harder when the reflexes are real.
+
+### 💭 Sheetmesh
+Federate several spreadsheets into one mesh — services discoverable across workbooks.
+A service mesh whose data plane is tab references.
+
+### 💭 HPA = conditional formatting
+Horizontal autoscaling driven by a cell formula / Sheets trigger: the replica count is
+a function of a cell, and conditional formatting turns red when you're out of quota.
+
+### 💭 Disaster recovery from Sheets revision history
+Restore a "cluster" from Google Sheets' built-in version history. RPO measured in
+Ctrl+Z. The only orchestrator with time travel out of the box.
+
+### 💭 SheetFinOps
+A cost dashboard for the runtime humanity already trusts. Infrastructure spend: $0.
+The whole section exists to brag about it.
+
+## How to influence the roadmap
+Open an issue. Or don't — it reconciles either way.
