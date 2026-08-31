@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/social-card.png" alt="Sheeternetes — a container orchestrator whose control plane is a Google Sheet" width="680">
+  <img src="https://sncfoundation.github.io/logos/sheeternetes.svg" alt="Sheeternetes logo" width="110">
+</p>
+<p align="center">
+  <img src="https://sncfoundation.github.io/social-card.png" alt="Sheeternetes — a container orchestrator whose control plane is a Google Sheet" width="680">
 </p>
 
 # Sheeternetes
