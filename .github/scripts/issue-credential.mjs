@@ -10,7 +10,7 @@ import { execSync } from "node:child_process";
 const REGISTRY_DIR = "docs/registry";
 const INDEX_JSON = `${REGISTRY_DIR}/index.json`;
 const INDEX_MD = `${REGISTRY_DIR}/index.md`;
-const PAGES_BASE = "https://tym83.github.io/sheeternetes";
+const PAGES_BASE = "https://sncfoundation.github.io/sheeternetes";
 
 const {
   ISSUE_NUMBER,
