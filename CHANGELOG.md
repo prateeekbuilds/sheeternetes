@@ -15,6 +15,9 @@ however many zeroes we feel like, because the spreadsheet is eternal.
 - **Issuance pipeline**: an Issue Form (`certify.yml`) plus a GitHub Action that
   assigns the serial, writes the registry (race-free via a concurrency group),
   comments the verification link, and closes the request. One credential per account.
+- **Public roadmap** (`ROADMAP.md`): flagship is Sheeternetes as a Cozystack managed
+  application, plus certification tiers, a verification badge, skctl/kubectl parity, and
+  assorted spreadsheet-native runtime bits — each with a `good first issue` tracking issue.
 
 ### Changed
 - Exam answers are now **shuffled** — the correct option is no longer always first.
