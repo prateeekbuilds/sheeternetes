@@ -231,42 +231,15 @@
   </div>
 
   <div id="certForm" class="card hidden">
-    <p class="q">You passed. Enter your GitHub username to be certified for life:</p>
-    <input type="text" id="ghuser" placeholder="octocat" autocomplete="off" spellcheck="false">
-    <button class="btn" id="issue">Issue my certificate</button>
-  </div>
-
-  <div id="certOut" class="hidden">
-    <div class="certwrap">
-      <div class="cert" id="cert">
-        <div class="seal">💩</div>
-        <h3>Official Credential · CSFE Program</h3>
-        <div class="title">Sheeternetes Fundamentals</div>
-        <p class="awarded">This credential is conferred upon</p>
-        <div class="name" id="certName"></div>
-        <div class="body">
-          <p>who, having satisfied the requirements of the examination, is hereby
-             recognized as a <b>Certified Sheeternetes Fundamentals Engineer (CSFE)</b>,</p>
-          <p>with all rights, privileges, and reconciliation loops appertaining thereto,
-             including the right to say the words <b>“it reconciles”</b> at parties.</p>
-          <p style="font-size:13px;color:#6b5a44">Valid from the date of issue until the
-             heat death of the universe. Non-transferable across parallel spreadsheets.</p>
-        </div>
-        <div class="sign">
-          <div>
-            Issued <span id="certDate"></span><br>
-            Credential ID <span id="certId"></span><br>
-            <span id="certVerify"></span>
-          </div>
-          <div style="text-align:right">
-            <b>The Spreadsheet</b>
-            Chief Reconciliation Officer<br>
-            Sheeternetes Accreditation Board
-          </div>
-        </div>
-      </div>
-    </div>
-    <p class="meta">Screenshot it, or <a href="#" id="dl">download the certificate (SVG)</a>. Wear it with shame.</p>
+    <p class="q">You passed. Claim your credential.</p>
+    <p style="margin:6px 0 14px">Your certificate is issued to the <b>GitHub account you use to file the
+      request</b> — you certify yourself, no impersonating octocat. A GitHub Action then assigns a
+      sequential serial number (<code>SFE000001</code>, <code>SFE000002</code>, …), records you in the
+      <a href="registry/">public registry</a>, and closes the request with your verification link.
+      HR can look you up for real.</p>
+    <p><a class="btn" id="claim" href="#" target="_blank" rel="noopener">Claim my credential on GitHub →</a></p>
+    <p class="meta">Requires a GitHub account and one click on “Submit new issue”. Issuance takes a few
+      seconds. Already certified? <a href="verify.html">Verify or download your certificate →</a></p>
   </div>
 </section>
 
@@ -319,19 +292,30 @@
       a:["Yes. Unconditionally. 🙏","I have several questions","Let me check with my SRE team","Only if it's SOC2 compliant"], c:0 }
   ];
 
+  var REPO_URL = "https://github.com/" + REPO;
+
+  // Shuffle each question's options so the correct answer isn't always first.
+  // We remember where the correct option landed per question in CORRECT[i].
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    return arr;
+  }
+  var CORRECT = [];
   var quiz = document.getElementById("quiz");
   QUESTIONS.forEach(function(item, i){
+    var order = shuffle(item.a.map(function(_, j){ return j; }));
+    CORRECT[i] = order.indexOf(item.c);
     var card = document.createElement("div"); card.className="card";
     var p = document.createElement("p"); p.className="q"; p.textContent=(i+1)+". "+item.q; card.appendChild(p);
-    item.a.forEach(function(opt, j){
+    order.forEach(function(origIdx, pos){
       var lab = document.createElement("label"); lab.className="opt";
-      lab.innerHTML = '<input type="radio" name="q'+i+'" value="'+j+'">'+opt;
+      lab.innerHTML = '<input type="radio" name="q'+i+'" value="'+pos+'">'+item.a[origIdx];
       card.appendChild(lab);
     });
     quiz.appendChild(card);
   });
 
-  function hash(s){ var h=5381; for(var i=0;i<s.length;i++){ h=((h<<5)+h)+s.charCodeAt(i); h=h&0xffffffff; } return (h>>>0).toString(16).toUpperCase(); }
+  var lastScore = 0;
 
   document.getElementById("grade").addEventListener("click", function(){
     var correct=0;
@@ -341,63 +325,23 @@
       for(var k=0;k<labels.length;k++){ labels[k].parentNode.classList.remove("correct","wrong"); }
       if(sel){
         var chosen=parseInt(sel.value,10);
-        if(chosen===item.c){ correct++; sel.parentNode.classList.add("correct"); }
-        else { sel.parentNode.classList.add("wrong"); labels[item.c].parentNode.classList.add("correct"); }
-      } else { labels[item.c].parentNode.classList.add("correct"); }
+        if(chosen===CORRECT[i]){ correct++; sel.parentNode.classList.add("correct"); }
+        else { sel.parentNode.classList.add("wrong"); labels[CORRECT[i]].parentNode.classList.add("correct"); }
+      } else { labels[CORRECT[i]].parentNode.classList.add("correct"); }
     });
+    lastScore = correct;
     var pass = correct >= 7;
     var score=document.getElementById("score");
     score.textContent = "  "+correct+"/"+QUESTIONS.length+" — "+(pass?"PASSED. You may believe.":"Not yet a believer. Try again.");
     score.style.color = pass ? "var(--accent)" : "#f85149";
     document.getElementById("certForm").classList.toggle("hidden", !pass);
-    if(pass){ document.getElementById("certForm").scrollIntoView({behavior:"smooth"}); }
-  });
-
-  document.getElementById("issue").addEventListener("click", function(){
-    var u=(document.getElementById("ghuser").value||"").trim().replace(/^@/,"");
-    if(!u){ alert("Enter your GitHub username, believer."); return; }
-    var name=document.getElementById("certName");
-    name.innerHTML = '<img src="https://github.com/'+encodeURIComponent(u)+'.png?size=88" alt="" onerror="this.style.display=\'none\'"> @'+u;
-    var now=new Date();
-    document.getElementById("certDate").textContent = now.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
-    var cid = "CSFE-"+now.getFullYear()+"-"+hash(u.toLowerCase())+"-"+(document.getElementById("version").textContent);
-    document.getElementById("certId").textContent = cid;
-    document.getElementById("certVerify").innerHTML =
-      'Verify at verify.sheeternetes.dev/'+encodeURIComponent(cid)+
-      ' <span style="color:#8b5a2b">(registry reconciling)</span>';
-    document.getElementById("certOut").classList.remove("hidden");
-    document.getElementById("certOut").scrollIntoView({behavior:"smooth"});
-  });
-
-  document.getElementById("dl").addEventListener("click", function(e){
-    e.preventDefault();
-    var u=(document.getElementById("ghuser").value||"").trim().replace(/^@/,"");
-    var date=document.getElementById("certDate").textContent;
-    var id=document.getElementById("certId").textContent;
-    var svg =
-'<svg xmlns="http://www.w3.org/2000/svg" width="720" height="470" viewBox="0 0 720 470">'+
-'<rect width="720" height="470" fill="#fff5e6"/>'+
-'<rect x="10" y="10" width="700" height="450" fill="none" stroke="#8b5a2b" stroke-width="4"/>'+
-'<rect x="18" y="18" width="684" height="434" fill="none" stroke="#8b5a2b" stroke-width="1"/>'+
-'<text x="360" y="70" text-anchor="middle" font-family="Georgia" font-size="60">💩</text>'+
-'<text x="360" y="120" text-anchor="middle" font-family="Georgia" font-size="13" letter-spacing="3" fill="#8b5a2b">CERTIFICATE OF COMPETENCE</text>'+
-'<text x="360" y="160" text-anchor="middle" font-family="Georgia" font-size="30" font-weight="bold" fill="#2a2118">Sheeternetes Fundamentals</text>'+
-'<text x="360" y="200" text-anchor="middle" font-family="Georgia" font-size="15" fill="#6b5a44">This certifies that</text>'+
-'<text x="360" y="235" text-anchor="middle" font-family="Georgia" font-size="26" font-weight="bold" fill="#2a2118">@'+u+'</text>'+
-'<text x="360" y="278" text-anchor="middle" font-family="Georgia" font-size="14" fill="#3a2f22">believes, unconditionally, that a spreadsheet is a fine place</text>'+
-'<text x="360" y="298" text-anchor="middle" font-family="Georgia" font-size="14" fill="#3a2f22">to run production containers, and may say “it reconciles” at parties.</text>'+
-'<text x="360" y="322" text-anchor="middle" font-family="Georgia" font-size="12" fill="#6b5a44">Certified Sheeternetes Fundamentals Engineer (CSFE) · valid until the heat death of the universe</text>'+
-'<text x="150" y="400" text-anchor="middle" font-family="Georgia" font-size="12" fill="#6b5a44">Issued '+date+'</text>'+
-'<text x="150" y="418" text-anchor="middle" font-family="Georgia" font-size="10" fill="#6b5a44">'+id+'</text>'+
-'<text x="150" y="434" text-anchor="middle" font-family="Georgia" font-size="9" fill="#6b5a44">verify.sheeternetes.dev</text>'+
-'<text x="560" y="392" text-anchor="middle" font-family="cursive" font-size="20" fill="#2a2118">The Spreadsheet</text>'+
-'<text x="560" y="412" text-anchor="middle" font-family="Georgia" font-size="10" fill="#6b5a44">on behalf of no one at the CNCF</text>'+
-'</svg>';
-    var blob=new Blob([svg],{type:"image/svg+xml"});
-    var a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="sheeternetes-fundamentals-"+(u||"certificate")+".svg";
-    a.click();
+    if(pass){
+      // Prefill the Issue Form: the `score` field id maps to a query param.
+      var url = REPO_URL + "/issues/new?template=certify.yml&labels=certification"
+              + "&score=" + encodeURIComponent(correct + "/" + QUESTIONS.length);
+      document.getElementById("claim").href = url;
+      document.getElementById("certForm").scrollIntoView({behavior:"smooth"});
+    }
   });
 })();
 </script>
